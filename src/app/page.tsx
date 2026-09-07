@@ -20,7 +20,7 @@ import { useState } from "react";
 const WHY = [
   { icon: HiOutlineLightBulb, title: "Strategy First", text: "We start with your business goals, not a template." },
   { icon: HiOutlineChartBar, title: "Investor-Grade Work", text: "Decks, models and profiles built to the standards VCs expect." },
-  { icon: HiOutlineShieldCheck, title: "Compliance Covered", text: "MCA, GST, ISO, FSSAI — all under one accountable team." },
+  { icon: HiOutlineShieldCheck, title: "Compliance Covered", text: "MCA, GST, ISO, FSSAI - all under one accountable team." },
   { icon: HiOutlineGlobeAlt, title: "Pan India Reach", text: "500+ businesses served across every major state." },
 ];
 
