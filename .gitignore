@@ -7,7 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+node_modules/
+
+# Next.js and deployment output
+.next/
+.vercel/
 dist
 dist-ssr
 .output
@@ -16,9 +20,23 @@ dist-ssr
 .nitro
 *.local
 
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Tool caches
+.cache/
+.eslintcache
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
