@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { HiLockClosed, HiX } from "react-icons/hi";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 
 export function AdminLoginModal() {
   const { adminLoginOpen, closeAdminLogin, login } = useApp();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState("admin@almawaservices.com");
   const [password, setPassword] = useState("admin123");
   const [err, setErr] = useState("");
@@ -19,7 +19,7 @@ export function AdminLoginModal() {
     e.preventDefault();
     if (login(email, password)) {
       closeAdminLogin();
-      navigate({ to: "/admin" });
+      router.push("/admin");
     } else {
       setErr("Invalid credentials.");
     }

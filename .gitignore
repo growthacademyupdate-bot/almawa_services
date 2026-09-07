@@ -8,6 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.next/
+.vercel/
 dist
 dist-ssr
 .output
@@ -15,6 +17,13 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+
+# Local environment files
+.env*
+!.env.example
+
+# Test and coverage output
+coverage/
 
 # Wrangler / Cloudflare
 .wrangler/

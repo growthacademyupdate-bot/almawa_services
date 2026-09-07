@@ -17,13 +17,12 @@ import "@fontsource/plus-jakarta-sans/500.css";
 import "@fontsource/plus-jakarta-sans/700.css";
 import "@fontsource/plus-jakarta-sans/800.css";
 
-import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppProvider } from "@/context/AppContext";
-import { Navbar } from "@/components/site/Navbar";
-import { Footer } from "@/components/site/Footer";
-import { ConsultationModal } from "@/components/site/ConsultationModal";
-import { AdminLoginModal } from "@/components/site/AdminLoginModal";
+import { AppProvider } from "../context/AppContext";
+import { Navbar } from "../components/site/Navbar";
+import { Footer } from "../components/site/Footer";
+import { ConsultationModal } from "../components/site/ConsultationModal";
+import { AdminLoginModal } from "../components/site/AdminLoginModal";
 
 function NotFoundComponent() {
   return (
@@ -47,7 +46,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
@@ -107,7 +106,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f27f66d0-bc24-4cca-84b7-7acca27f453f/id-preview-9b5592bd--c7ec9878-211d-4256-aa96-ab8575d892cc.lovable.app-1783501275333.png" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
