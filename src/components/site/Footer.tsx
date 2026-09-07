@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { FaLinkedin, FaTwitter, FaFacebook, FaInstagram } from "react-icons/fa";
 import { HiMail, HiPhone, HiLocationMarker } from "react-icons/hi";
 import { useState } from "react";
@@ -65,7 +65,7 @@ export function Footer() {
                 ["/contact", "Contact"],
               ].map(([to, label]) => (
                 <li key={to}>
-                  <Link to={to as any} className="hover:text-primary transition story-link">
+                  <Link href={to} className="hover:text-primary transition story-link">
                     {label}
                   </Link>
                 </li>
@@ -81,8 +81,7 @@ export function Footer() {
               {services.map((s) => (
                 <li key={s.slug}>
                   <Link
-                    to="/services/$slug"
-                    params={{ slug: s.slug }}
+                    href={`/services/${s.slug}`}
                     className="hover:text-primary transition story-link"
                   >
                     {s.title}
@@ -149,8 +148,8 @@ export function Footer() {
         <div className="mt-14 pt-6 border-t border-white/10 flex flex-col md:flex-row gap-4 items-center justify-between text-xs text-navy-foreground/60">
           <div>© {new Date().getFullYear()} {settings.companyName}. All rights reserved.</div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link to="/" className="hover:text-primary">Privacy</Link>
-            <Link to="/" className="hover:text-primary">Terms</Link>
+            <Link href="/" className="hover:text-primary">Privacy</Link>
+            <Link href="/" className="hover:text-primary">Terms</Link>
             <button onClick={openAdminLogin} className="hover:text-primary">
               Admin Login
             </button>

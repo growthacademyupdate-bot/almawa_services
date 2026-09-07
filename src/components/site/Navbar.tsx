@@ -1,5 +1,7 @@
+"use client";
 import { useEffect, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { HiMenu, HiX, HiChevronDown } from "react-icons/hi";
 import { useApp } from "@/context/AppContext";
@@ -19,7 +21,7 @@ const NAV: NavItem[] = [
 
 export function Navbar() {
   const { openConsultation, settings } = useApp();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
@@ -49,7 +51,7 @@ export function Navbar() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-18 items-center justify-between py-3">
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <div className="grid h-10 w-10 place-items-center rounded-xl gradient-primary shadow-elegant">
               <span className="text-primary-foreground font-black text-lg">A</span>
             </div>
@@ -87,7 +89,7 @@ export function Navbar() {
                     onMouseLeave={() => setDropdown(false)}
                   >
                     <Link
-                      to={item.to as any}
+                      href={item.to}
                       className={`inline-flex items-center gap-1 px-3.5 py-2 rounded-full text-sm font-medium transition ${
                         active
                           ? "text-primary"
@@ -113,8 +115,7 @@ export function Navbar() {
                               {services.map((s) => (
                                 <Link
                                   key={s.slug}
-                                  to="/services/$slug"
-                                  params={{ slug: s.slug }}
+                                  href={`/services/${s.slug}`}
                                   className="group flex items-start gap-3 rounded-xl p-3 hover:bg-secondary transition"
                                 >
                                   <div className="h-10 w-10 shrink-0 rounded-lg gradient-primary grid place-items-center text-primary-foreground font-bold">
@@ -153,7 +154,7 @@ export function Navbar() {
               return (
                 <Link
                   key={item.to}
-                  to={item.to as any}
+                  href={item.to}
                   className={`px-3.5 py-2 rounded-full text-sm font-medium transition ${
                     active
                       ? "text-primary"
@@ -201,7 +202,7 @@ export function Navbar() {
               {NAV.map((item) => (
                 <Link
                   key={item.to}
-                  to={item.to as any}
+                  href={item.to}
                   className="px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-secondary"
                 >
                   {item.label}
@@ -211,8 +212,7 @@ export function Navbar() {
                 {services.map((s) => (
                   <Link
                     key={s.slug}
-                    to="/services/$slug"
-                    params={{ slug: s.slug }}
+                    href={`/services/${s.slug}`}
                     className="px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-primary"
                   >
                     ↳ {s.title}
