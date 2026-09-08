@@ -8,13 +8,25 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.next/
 dist
 dist-ssr
+out/
+coverage/
+*.tsbuildinfo
 .output
 .vinxi
 .tanstack/**
 .nitro
 *.local
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Deployment tooling
+.vercel/
 
 # Wrangler / Cloudflare
 .wrangler/
