@@ -36,12 +36,6 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "src/routes",
-    "src/routeTree.gen.ts",
-    "src/router.tsx",
-    "src/server.ts",
-    "src/start.ts",
-    "vite.config.ts"
+    "node_modules"
   ]
 }
