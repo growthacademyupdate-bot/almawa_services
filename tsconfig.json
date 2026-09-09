@@ -37,11 +37,11 @@
   ],
   "exclude": [
     "node_modules",
-    "src/routes",
-    "src/routeTree.gen.ts",
-    "src/router.tsx",
     "src/server.ts",
     "src/start.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "src/routeTree.gen.ts",
+    "src/router.tsx",
+    "src/routes/**/*"
   ]
 }
