@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { HiX, HiCheckCircle, HiShieldCheck, HiClock, HiUsers, HiLocationMarker } from "react-icons/hi";
 import { useApp } from "@/context/AppContext";
 import { serviceOptions } from "@/mock/data";
+import { createConsultation } from "@/server/consultation";
 
 const STAGES = ["Idea Stage", "Early Startup", "Existing Business", "MSME / SME"];
 
@@ -39,7 +40,7 @@ export function ConsultationModal() {
   const update = (k: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.firstName.trim()) errs.firstName = "Required";
@@ -51,8 +52,21 @@ export function ConsultationModal() {
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
-    addLead(form);
-    setSuccess(true);
+    try {
+      await createConsultation({
+        data: {
+          ...form,
+          mobile: form.phone,
+          country: "India",
+          subject: "Free consultation",
+        },
+      });
+      addLead(form);
+      setSuccess(true);
+    } catch (error) {
+      console.error("Failed to submit consultation", error);
+      setErrors({ message: "Unable to submit right now. Please try again." });
+    }
   };
 
   return (
