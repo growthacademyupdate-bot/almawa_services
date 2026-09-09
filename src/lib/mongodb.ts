@@ -1,38 +1,45 @@
-import mongoose from 'mongoose';
+import { MongoClient } from "mongodb";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env');
+if (!uri) {
+  throw new Error("Missing MONGODB_URI in .env");
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
- */
-let cached = (global as any).mongoose;
+const globalForMongo = globalThis as typeof globalThis & {
+  mongoClient?: MongoClient;
+};
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+export const mongoClient =
+  globalForMongo.mongoClient ?? new MongoClient(uri);
+
+if (process.env.NODE_ENV !== "production") {
+  globalForMongo.mongoClient = mongoClient;
+}import { MongoClient } from "mongodb";
+
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  throw new Error("Missing MONGODB_URI in .env");
 }
 
-async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
-  }
+const globalForMongo = globalThis as typeof globalThis & {
+  mongoClient?: MongoClient;
+};
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
+export const mongoClient =
+  globalForMongo.mongoClient ?? new MongoClient(uri);
 
-    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
-      return mongoose;
-    });
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
+if (process.env.NODE_ENV !== "production") {
+  globalForMongo.mongoClient = mongoClient;
 }
 
-export default dbConnect;
+export async function getDatabase() {
+  await mongoClient.connect();
+  return mongoClient.db();
+}
+
+export async function getDatabase() {
+  await mongoClient.connect();
+  return mongoClient.db();
+}

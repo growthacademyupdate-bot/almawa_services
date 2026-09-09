@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { HiX, HiCheckCircle, HiShieldCheck, HiClock, HiUsers, HiLocationMarker } from "react-icons/hi";
 import { useApp } from "@/context/AppContext";
 import { serviceOptions } from "@/mock/data";
+import { createConsultation } from "@/server/consultation";
 
 const STAGES = ["Idea Stage", "Early Startup", "Existing Business", "MSME / SME"];
 
@@ -39,8 +40,6 @@ export function ConsultationModal() {
   const update = (k: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
@@ -53,25 +52,20 @@ export function ConsultationModal() {
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
-    setIsSubmitting(true);
     try {
-      const response = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      await createConsultation({
+        data: {
+          ...form,
+          mobile: form.phone,
+          country: "India",
+          subject: "Free consultation",
+        },
       });
-      
-      if (response.ok) {
-        addLead(form);
-        setSuccess(true);
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to submit form:", errorData);
-      }
+      addLead(form);
+      setSuccess(true);
     } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsSubmitting(false);
+      console.error("Failed to submit consultation", error);
+      setErrors({ message: "Unable to submit right now. Please try again." });
     }
   };
 
@@ -241,10 +235,9 @@ export function ConsultationModal() {
                   </Field>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="mt-2 rounded-full gradient-primary text-primary-foreground px-6 py-3.5 text-sm font-bold shadow-elegant hover:shadow-glow transition disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="mt-2 rounded-full gradient-primary text-primary-foreground px-6 py-3.5 text-sm font-bold shadow-elegant hover:shadow-glow transition"
                   >
-                    {isSubmitting ? "Submitting..." : "Submit — Get My Free Consultation"}
+                    Submit — Get My Free Consultation
                   </button>
                   <p className="text-center text-xs text-muted-foreground">
                     By submitting, you agree to be contacted about your enquiry. Your details are
