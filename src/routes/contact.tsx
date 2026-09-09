@@ -53,7 +53,9 @@ function Contact() {
 
   const update = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const submit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.firstName.trim()) errs.firstName = "Required";
@@ -64,17 +66,36 @@ function Contact() {
     if (form.message.trim().length < 10) errs.message = "Tell us a bit more";
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    addLead(form);
-    setSuccess(true);
-    setForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      service: "",
-      stage: "Idea Stage",
-      message: "",
-    });
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      
+      if (response.ok) {
+        addLead(form);
+        setSuccess(true);
+        setForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          service: "",
+          stage: "Idea Stage",
+          message: "",
+        });
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to submit form:", errorData);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -214,9 +235,10 @@ function Contact() {
                 </Field>
                 <button
                   type="submit"
-                  className="mt-2 rounded-full gradient-primary text-primary-foreground px-6 py-3.5 text-sm font-bold shadow-elegant hover:shadow-glow transition"
+                  disabled={isSubmitting}
+                  className="mt-2 rounded-full gradient-primary text-primary-foreground px-6 py-3.5 text-sm font-bold shadow-elegant hover:shadow-glow transition disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Submit — Get My Free Consultation
+                  {isSubmitting ? "Submitting..." : "Submit — Get My Free Consultation"}
                 </button>
               </form>
             )}
