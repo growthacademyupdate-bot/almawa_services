@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 
 interface RecentLeadsTableProps {
   leads: any[];
+  hideViewAll?: boolean;
 }
 
-export function RecentLeadsTable({ leads }: RecentLeadsTableProps) {
+export function RecentLeadsTable({ leads, hideViewAll = false }: RecentLeadsTableProps) {
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case "new": return "default";
@@ -34,9 +35,11 @@ export function RecentLeadsTable({ leads }: RecentLeadsTableProps) {
         <div className="admin-card-title">
           <span className="title-dot" /> Recent Leads
         </div>
-        <button className="text-sm text-[#ff5a1f] font-semibold hover:underline">
-          View All Leads
-        </button>
+        {!hideViewAll && (
+          <button className="text-sm text-[#ff5a1f] font-semibold hover:underline">
+            View All Leads
+          </button>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">

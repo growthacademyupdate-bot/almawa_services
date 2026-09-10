@@ -2,16 +2,19 @@ import { ArrowRight, TrendingUp } from "lucide-react";
 
 interface ServicesSummaryProps {
   services: any[];
+  hideHeader?: boolean;
 }
 
-export function ServicesSummary({ services }: ServicesSummaryProps) {
+export function ServicesSummary({ services, hideHeader = false }: ServicesSummaryProps) {
   return (
     <div className="admin-card h-full flex flex-col">
-      <div className="admin-card-header mb-4">
-        <div className="admin-card-title">
-          <span className="title-dot" /> Services Performance
+      {!hideHeader && (
+        <div className="admin-card-header mb-4">
+          <div className="admin-card-title">
+            <span className="title-dot" /> Services Performance
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
         {services.map((service) => (
