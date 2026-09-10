@@ -1,0 +1,106 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  MessageSquare,
+  FileText,
+  HelpCircle,
+  Mail,
+  Settings,
+  Calendar,
+  Building,
+} from "lucide-react";
+
+const NAV_ITEMS = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/leads", label: "Leads", icon: Users },
+  { href: "/admin/consultations", label: "Consultations", icon: Calendar },
+  { href: "/admin/services", label: "Services", icon: Briefcase },
+  { href: "/admin/industries", label: "Industries", icon: Building },
+  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
+  { href: "/admin/blog", label: "Blog", icon: FileText },
+  { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
+  { href: "/admin/messages", label: "Contact Messages", icon: Mail },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
+];
+
+export function AdminSidebar({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0A0F1C] text-slate-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-64 border-r border-white/5 flex flex-col ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="h-16 flex items-center px-6 shrink-0 border-b border-white/5">
+          <Link href="/admin" className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ff5a1f] to-[#ff8052] flex items-center justify-center text-white font-bold text-lg shadow-glow">
+              A
+            </div>
+            <div>
+              <div className="font-display font-bold text-white leading-tight">
+                Almawa Services
+              </div>
+              <div className="text-[10px] uppercase tracking-wider text-[#ff5a1f] font-bold">
+                Business Consulting
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-[#ff5a1f] text-white shadow-[0_4px_12px_rgba(255,90,31,0.25)]"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-500"}`} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-white/5 bg-[#0A0F1C]/50">
+          <div className="bg-white/5 rounded-xl p-4">
+            <p className="text-xs text-slate-400 text-center">
+              Logged in as Admin
+            </p>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
