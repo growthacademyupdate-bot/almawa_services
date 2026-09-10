@@ -2,9 +2,10 @@ import { Calendar, MoreHorizontal } from "lucide-react";
 
 interface ConsultationTableProps {
   consultations: any[];
+  hideViewAll?: boolean;
 }
 
-export function ConsultationTable({ consultations }: ConsultationTableProps) {
+export function ConsultationTable({ consultations, hideViewAll = false }: ConsultationTableProps) {
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending": return "bg-amber-500/10 text-amber-600 border-amber-200";
@@ -21,9 +22,11 @@ export function ConsultationTable({ consultations }: ConsultationTableProps) {
         <div className="admin-card-title">
           <span className="title-dot" /> Recent Consultations
         </div>
-        <button className="text-sm text-[#ff5a1f] font-semibold hover:underline">
-          View All
-        </button>
+        {!hideViewAll && (
+          <button className="text-sm text-[#ff5a1f] font-semibold hover:underline">
+            View All
+          </button>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">

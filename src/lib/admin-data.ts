@@ -74,3 +74,42 @@ export const notifications = [
   { id: 3, title: "New contact message", time: "1 hour ago", isRead: true },
   { id: 4, title: "System update completed", time: "Yesterday", isRead: true },
 ];
+
+export const industriesData = [
+  { id: 1, name: "Healthcare", clients: 24, activeProjects: 5 },
+  { id: 2, name: "Financial Services", clients: 42, activeProjects: 12 },
+  { id: 3, name: "Retail & E-commerce", clients: 18, activeProjects: 3 },
+  { id: 4, name: "Manufacturing", clients: 31, activeProjects: 8 },
+  { id: 5, name: "Technology", clients: 56, activeProjects: 15 },
+  { id: 6, name: "Real Estate", clients: 15, activeProjects: 2 },
+];
+
+export const testimonialsData = [
+  {
+    id: 1,
+    clientName: "Sarah Jenkins",
+    company: "TechNova Solutions",
+    rating: 5,
+    status: "approved",
+    text: "Almawa Services transformed our internal processes. Their digital strategy consulting was top-notch.",
+    date: "2024-05-12"
+  },
+  {
+    id: 2,
+    clientName: "Michael Chang",
+    company: "Apex Retail",
+    rating: 5,
+    status: "pending",
+    text: "The team provided excellent guidance during our market expansion phase. Highly recommended.",
+    date: "2024-05-20"
+  },
+  {
+    id: 3,
+    clientName: "Emily Rodriguez",
+    company: "HealthFirst Clinics",
+    rating: 4,
+    status: "approved",
+    text: "Very professional and knowledgeable. They helped us streamline our patient management systems.",
+    date: "2024-04-05"
+  }
+];
