@@ -61,7 +61,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jakarta.variable}`}
     >
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
