@@ -24,7 +24,10 @@ export interface Lead {
   firstName: string;
   lastName: string;
   email: string;
+  mobile?: string;
   phone: string;
+  country?: string;
+  subject?: string;
   service: string;
   stage: string;
   message: string;

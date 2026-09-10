@@ -14,6 +14,7 @@ import { Route as ServicesRouteImport } from './routes/services'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ContactFormRouteImport } from './routes/contactForm'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -46,6 +47,11 @@ const FaqRoute = FaqRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactFormRoute = ContactFormRouteImport.update({
+  id: '/contactForm',
+  path: '/contactForm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
+  '/contactForm': typeof ContactFormRoute
   '/faq': typeof FaqRoute
   '/industries': typeof IndustriesRoute
   '/services': typeof ServicesRouteWithChildren
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
+  '/contactForm': typeof ContactFormRoute
   '/faq': typeof FaqRoute
   '/industries': typeof IndustriesRoute
   '/testimonials': typeof TestimonialsRoute
@@ -141,6 +149,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/contact'
+    | '/contactForm'
     | '/faq'
     | '/industries'
     | '/services'
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/contactForm'
     | '/faq'
     | '/industries'
     | '/testimonials'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/contact'
+    | '/contactForm'
     | '/faq'
     | '/industries'
     | '/services'
@@ -185,6 +196,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   BlogRoute: typeof BlogRouteWithChildren
   ContactRoute: typeof ContactRoute
+  ContactFormRoute: typeof ContactFormRoute
   FaqRoute: typeof FaqRoute
   IndustriesRoute: typeof IndustriesRoute
   ServicesRoute: typeof ServicesRouteWithChildren
@@ -226,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contactForm': {
+      id: '/contactForm'
+      path: '/contactForm'
+      fullPath: '/contactForm'
+      preLoaderRoute: typeof ContactFormRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -319,6 +338,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   BlogRoute: BlogRouteWithChildren,
   ContactRoute: ContactRoute,
+  ContactFormRoute: ContactFormRoute,
   FaqRoute: FaqRoute,
   IndustriesRoute: IndustriesRoute,
   ServicesRoute: ServicesRouteWithChildren,
