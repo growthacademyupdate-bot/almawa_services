@@ -10,6 +10,9 @@ export type ServiceSlug =
 export interface ServiceItem {
   slug: ServiceSlug;
   title: string;
+  createdAt?: string;
+  clients?: number;
+  projects?: number;
   tagline: string;
   description: string;
   icon: string; // react-icons name key
