@@ -257,7 +257,20 @@ export default function Home() {
                 </div>
                 <p className="mt-4 text-foreground/90 leading-relaxed">"{t.comment}"</p>
                 <div className="mt-6 flex items-center gap-3">
-                  <img src={t.image} alt={t.name} className="h-11 w-11 rounded-full object-cover" />
+                  {t.image ? (
+                    <img
+                      src={t.image}
+                      alt={t.name}
+                      className="h-11 w-11 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      aria-hidden="true"
+                      className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 font-semibold text-primary"
+                    >
+                      {t.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <div className="font-semibold text-sm">{t.name}</div>
                     <div className="text-xs text-muted-foreground">{t.company}</div>

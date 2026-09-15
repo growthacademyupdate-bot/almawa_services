@@ -7,24 +7,42 @@ import {
   CtaBand,
 } from "@/components/site/primitives";
 
-import { blogsSeed } from "@/mock/data";
 import { useApp } from "@/context/AppContext";
 
-type BlogItem = (typeof blogsSeed)[number];
-
 export default function BlogDetailClient({
-  blog,
+  slug,
 }: {
-  blog: BlogItem;
+  slug: string;
 }) {
   const {
     blogs,
     openConsultation,
   } = useApp();
 
+  const currentBlog = blogs.find((item) => item.slug === slug);
+
+  if (!currentBlog) {
+    return (
+      <section className="mx-auto max-w-3xl px-4 pb-20 pt-40 text-center">
+        <h1 className="text-3xl font-display font-bold">
+          Article not found
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          This post may have been removed or is still loading.
+        </p>
+        <Link
+          href="/blog"
+          className="mt-6 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+        >
+          Back to blog
+        </Link>
+      </section>
+    );
+  }
+
   const recent = blogs
     .filter(
-      (item) => item.slug !== blog.slug,
+      (item) => item.slug !== currentBlog.slug,
     )
     .slice(0, 3);
 
@@ -41,23 +59,23 @@ export default function BlogDetailClient({
           </Link>
 
           <div className="mt-6 text-[11px] font-bold uppercase tracking-widest text-primary">
-            {blog.category}
+            {currentBlog.category}
           </div>
 
           <h1 className="mt-3 text-3xl sm:text-5xl font-display font-black leading-tight">
-            {blog.title}
+            {currentBlog.title}
           </h1>
 
           <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
             <span>
-              {blog.author}
+              {currentBlog.author}
             </span>
 
             <span>·</span>
 
             <span>
               {new Date(
-                blog.date,
+                currentBlog.date,
               ).toLocaleDateString(
                 "en-IN",
                 {
@@ -70,13 +88,13 @@ export default function BlogDetailClient({
           </div>
 
           <img
-            src={blog.image}
-            alt={blog.title}
+            src={currentBlog.image || undefined}
+            alt={currentBlog.title}
             className="mt-8 w-full rounded-3xl aspect-[16/9] object-cover shadow-elegant"
           />
 
           <div className="mt-10 prose prose-lg max-w-none">
-            {blog.content
+            {currentBlog.content
               .split("\n\n")
               .map(
                 (

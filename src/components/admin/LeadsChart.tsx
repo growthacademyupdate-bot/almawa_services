@@ -17,13 +17,13 @@ interface LeadsChartProps {
 
 export function LeadsChart({ data }: LeadsChartProps) {
   return (
-    <div className="admin-card">
+    <div className="admin-card h-full flex flex-col">
       <div className="admin-card-header mb-6">
         <div className="admin-card-title">
           <span className="title-dot" /> Leads Overview
         </div>
       </div>
-      <div className="h-[300px] w-full">
+      <div className="h-[420px] min-h-0 w-full flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />

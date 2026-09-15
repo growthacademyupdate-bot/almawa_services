@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Plus, Minus, Search, MessageCircleQuestion } from "lucide-react";
@@ -118,6 +118,34 @@ export default function FAQPage() {
   const { openConsultation } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
+  const [customQuestions, setCustomQuestions] = useState<
+    { q: string; a: string }[]
+  >([]);
+  const [showAddFaq, setShowAddFaq] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+
+  useEffect(() => {
+    void fetch("/api/admin/content/faqs")
+      .then((response) => (response.ok ? response.json() : []))
+      .then((items: { q?: string; a?: string }[]) => {
+        setCustomQuestions(
+          Array.isArray(items)
+            ? items
+                .filter(
+                  (item): item is { q: string; a: string } =>
+                    Boolean(item.q),
+                )
+                .filter(
+                  (item) =>
+                    !faqData.some((category) =>
+                      category.questions.some((question) => question.q === item.q),
+                    ),
+                )
+            : [],
+        );
+      })
+      .catch(() => undefined);
+  });
 
   const toggleQuestion = (q: string) => {
     setOpenQuestion(openQuestion === q ? null : q);
@@ -141,8 +169,14 @@ export default function FAQPage() {
     }
   };
 
-  // Filter FAQ data based on search
-  const filteredData = faqData
+  const allFaqData = [
+    ...faqData,
+    ...(customQuestions.length > 0
+      ? [{ category: "Added Questions", questions: customQuestions }]
+      : []),
+  ];
+
+  const filteredData = allFaqData
     .map((category) => ({
       ...category,
       questions: category.questions.filter(
@@ -152,6 +186,25 @@ export default function FAQPage() {
       ),
     }))
     .filter((category) => category.questions.length > 0);
+
+  const addFaq = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const q = newQuestion.trim();
+
+    if (!q) return;
+
+    const response = await fetch("/api/admin/content/faqs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q, a: "" }),
+    });
+
+    if (response.ok) {
+      setCustomQuestions((current) => [{ q, a: "" }, ...current]);
+      setNewQuestion("");
+      setShowAddFaq(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col pt-24 bg-background">
@@ -209,6 +262,13 @@ export default function FAQPage() {
               >
                 Contact Us
               </Link>
+              <button
+                type="button"
+                onClick={() => setShowAddFaq(true)}
+                className="rounded-full border border-border bg-background px-8 py-3.5 text-base font-semibold text-foreground transition-colors hover:bg-secondary"
+              >
+                Add FAQ
+              </button>
             </motion.div>
           </div>
         </div>
@@ -239,6 +299,39 @@ export default function FAQPage() {
               </button>
             )}
           </div>
+
+          {showAddFaq && (
+            <div className="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4">
+              <form
+                onSubmit={addFaq}
+                className="w-full max-w-lg space-y-4 rounded-2xl border border-border bg-background p-6 shadow-2xl"
+              >
+                <h2 className="text-xl font-bold">Add FAQ</h2>
+                <input
+                  required
+                  value={newQuestion}
+                  onChange={(event) => setNewQuestion(event.target.value)}
+                  placeholder="Question"
+                  className="input"
+                />
+                <p className="text-sm text-muted-foreground">
+                  An administrator will add the answer after submission.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddFaq(false)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="gradient-primary rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground">
+                    Save FAQ
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Popular Questions */}
           {!searchQuery && (
