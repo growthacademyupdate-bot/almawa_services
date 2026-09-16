@@ -150,9 +150,6 @@ export function Footer() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link href="/" className="hover:text-primary">Privacy</Link>
             <Link href="/" className="hover:text-primary">Terms</Link>
-            <button onClick={openAdminLogin} className="hover:text-primary">
-              Admin Login
-            </button>
           </div>
         </div>
       </div>

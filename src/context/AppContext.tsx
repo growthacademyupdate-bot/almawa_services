@@ -620,11 +620,12 @@ export function AppProvider({
           email,
           password,
         ) => {
+          const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@almawaservices.com";
+          const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
+
           if (
-            email ===
-              "admin@almawaservices.com" &&
-            password ===
-              "admin123"
+            email === adminEmail &&
+            password === adminPassword
           ) {
             setState(
               (current) => ({
