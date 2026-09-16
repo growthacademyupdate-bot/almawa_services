@@ -542,6 +542,7 @@ export const defaultSettings = {
   seoTitle: "Almawa Services — Business Consulting, Incorporation & Fund Raising",
   seoDescription:
     "Pan-India business consulting for startups and MSMEs — incorporation, certifications, company profiling, fund raising and digital marketing.",
+    maintenanceMode: false,
 };
 
 export const serviceOptions = [

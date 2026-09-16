@@ -11,6 +11,46 @@ function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+export async function GET() {
+  try {
+    const db = await getDatabase();
+    const messages = await db
+      .collection(contactCollection)
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return NextResponse.json(
+      messages.map((message) => ({
+        ...message,
+        _id: message._id.toString(),
+      })),
+    );
+  } catch (error) {
+    console.error("Failed to load contact messages", error);
+    return NextResponse.json({ error: "Unable to load contact messages" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Message id is required" }, { status: 400 });
+
+    const { ObjectId } = await import("mongodb");
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid message id" }, { status: 400 });
+
+    const db = await getDatabase();
+    const result = await db.collection(contactCollection).deleteOne({ _id: new ObjectId(id) });
+    if (!result.deletedCount) return NextResponse.json({ error: "Message not found" }, { status: 404 });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete contact message", error);
+    return NextResponse.json({ error: "Unable to delete contact message" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, unknown>;

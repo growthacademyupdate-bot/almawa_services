@@ -147,6 +147,7 @@ export interface Settings {
 
   seoTitle: string;
   seoDescription: string;
+  maintenanceMode: boolean;
 }
 
 /* =========================================================
