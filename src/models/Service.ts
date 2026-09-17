@@ -13,6 +13,7 @@ export interface IService extends Document {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string;
+  faqs?: { q: string; a: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,7 @@ const ServiceSchema: Schema = new Schema(
     seoTitle: { type: String },
     seoDescription: { type: String },
     seoKeywords: { type: String },
+    faqs: { type: [{ q: String, a: String }], default: [] },
   },
   { timestamps: true }
 );
