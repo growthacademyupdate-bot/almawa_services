@@ -1,319 +1,1050 @@
 "use client";
 
-import { Plus, Search, Filter, Building, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { industriesData } from "@/lib/admin-data";
+import {
+  Building2,
+  CheckCircle2,
+  Filter,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Industry = {
-  id: string | number;
+  id: string;
   name: string;
-  clients: number;
-  activeProjects: number;
+  description: string;
+  focus: string[];
+  icon?: string;
 };
 
-export default function IndustriesManagementPage() {
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("");
+const emptyForm = {
+  name: "",
+  description: "",
+  focus: [""],
+};
 
-  const [industries, setIndustries] = useState<Industry[]>(
-    industriesData as Industry[],
+function notifyIndustryUpdate() {
+  /*
+   * Current tab
+   */
+  window.dispatchEvent(
+    new Event(
+      "almawa:industries-updated",
+    ),
   );
 
-  const [showAddIndustry, setShowAddIndustry] = useState(false);
-  const [industryName, setIndustryName] = useState("");
+  /*
+   * Other browser tabs
+   */
+  localStorage.setItem(
+    "almawa_industries_updated",
+    Date.now().toString(),
+  );
+}
+
+export default function IndustriesManagementPage() {
+  const [
+    industries,
+    setIndustries,
+  ] = useState<Industry[]>([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  const [
+    search,
+    setSearch,
+  ] = useState("");
+
+  const [
+    sortBy,
+    setSortBy,
+  ] = useState("");
+
+  const [
+    showForm,
+    setShowForm,
+  ] = useState(false);
+
+  const [
+    editingId,
+    setEditingId,
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
+    form,
+    setForm,
+  ] = useState(
+    emptyForm,
+  );
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  const loadIndustries =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
+
+          const response =
+            await fetch(
+              "/api/admin/content/industries",
+              {
+                cache:
+                  "no-store",
+              },
+            );
+
+          const data =
+            await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data?.error ??
+                "Unable to load industries",
+            );
+          }
+
+          if (
+            !Array.isArray(data)
+          ) {
+            throw new Error(
+              "Invalid industries response",
+            );
+          }
+
+          const normalized =
+            data
+              .map(
+                (item) => ({
+                  id: String(
+                    item.id ??
+                      item._id ??
+                      crypto.randomUUID(),
+                  ),
+                  name: String(
+                    item.name ??
+                      item.title ??
+                      "",
+                  ),
+                  description: String(
+                    item.description ??
+                      item.desc ??
+                      "",
+                  ),
+                  focus: Array.isArray(
+                    item.focus,
+                  )
+                    ? item.focus
+                        .map(
+                          (
+                            value: unknown,
+                          ) =>
+                            String(
+                              value,
+                            ),
+                        )
+                        .filter(
+                          Boolean,
+                        )
+                    : Array.isArray(
+                        item.keyFocusAreas,
+                      )
+                      ? item.keyFocusAreas
+                          .map(
+                            (
+                              value: unknown,
+                            ) =>
+                              String(
+                                value,
+                              ),
+                          )
+                          .filter(
+                            Boolean,
+                          )
+                      : [],
+                  icon:
+                    typeof item.icon ===
+                    "string"
+                      ? item.icon
+                      : undefined,
+                })
+              )
+              .filter(
+                (
+                  item,
+                ) =>
+                  item.name.trim() !==
+                  "",
+              );
+
+          setIndustries(
+            normalized,
+          );
+        } catch (loadError) {
+          console.error(
+            "Failed to load industries:",
+            loadError,
+          );
+
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Unable to load industries",
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      [],
+    );
 
   useEffect(() => {
-    const loadIndustries = async () => {
-      try {
-        const response = await fetch("/api/admin/content/industries");
-        if (!response.ok) return;
+    void loadIndustries();
 
-        const backendIndustries = await response.json();
-        if (Array.isArray(backendIndustries) && backendIndustries.length > 0) {
-          setIndustries(backendIndustries as Industry[]);
+    const handleIndustryUpdate =
+      () => {
+        void loadIndustries();
+      };
+
+    const handleStorage =
+      (
+        event: StorageEvent,
+      ) => {
+        if (
+          event.key ===
+          "almawa_industries_updated"
+        ) {
+          void loadIndustries();
         }
-      } catch (error) {
-        console.error("Failed to load industries from backend:", error);
+      };
+
+    window.addEventListener(
+      "almawa:industries-updated",
+      handleIndustryUpdate,
+    );
+
+    window.addEventListener(
+      "storage",
+      handleStorage,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "almawa:industries-updated",
+        handleIndustryUpdate,
+      );
+
+      window.removeEventListener(
+        "storage",
+        handleStorage,
+      );
+    };
+  }, [
+    loadIndustries,
+  ]);
+
+  const filteredIndustries =
+    useMemo(() => {
+      const query =
+        search
+          .trim()
+          .toLowerCase();
+
+      const result =
+        industries.filter(
+          (industry) => {
+            if (!query) {
+              return true;
+            }
+
+            return (
+              industry.name
+                .toLowerCase()
+                .includes(query) ||
+              industry.description
+                .toLowerCase()
+                .includes(query) ||
+              industry.focus.some(
+                (item) =>
+                  item
+                    .toLowerCase()
+                    .includes(
+                      query,
+                    ),
+              )
+            );
+          },
+        );
+
+      if (
+        sortBy === "name"
+      ) {
+        result.sort(
+          (a, b) =>
+            a.name.localeCompare(
+              b.name,
+            ),
+        );
+      }
+
+      return result;
+    }, [
+      industries,
+      search,
+      sortBy,
+    ]);
+
+  const openAddForm =
+    () => {
+      setEditingId(null);
+      setForm({
+        name: "",
+        description: "",
+        focus: [""],
+      });
+      setError("");
+      setShowForm(true);
+    };
+
+  const openEditForm =
+    (industry: Industry) => {
+      setEditingId(
+        industry.id,
+      );
+
+      setForm({
+        name: industry.name,
+        description:
+          industry.description,
+        focus:
+          industry.focus.length >
+          0
+            ? [
+                ...industry.focus,
+              ]
+            : [""],
+      });
+
+      setError("");
+      setShowForm(true);
+    };
+
+  const closeForm =
+    () => {
+      if (saving) {
+        return;
+      }
+
+      setShowForm(false);
+      setEditingId(null);
+      setForm({
+        name: "",
+        description: "",
+        focus: [""],
+      });
+      setError("");
+    };
+
+  const updateFocus =
+    (
+      index: number,
+      value: string,
+    ) => {
+      setForm(
+        (current) => {
+          const focus = [
+            ...current.focus,
+          ];
+
+          focus[index] =
+            value;
+
+          return {
+            ...current,
+            focus,
+          };
+        },
+      );
+    };
+
+  const addFocus =
+    () => {
+      setForm(
+        (current) => ({
+          ...current,
+          focus: [
+            ...current.focus,
+            "",
+          ],
+        }),
+      );
+    };
+
+  const removeFocus =
+    (index: number) => {
+      setForm(
+        (current) => {
+          const focus =
+            current.focus.filter(
+              (
+                _,
+                itemIndex,
+              ) =>
+                itemIndex !==
+                index,
+            );
+
+          return {
+            ...current,
+            focus:
+              focus.length > 0
+                ? focus
+                : [""],
+          };
+        },
+      );
+    };
+
+  const saveIndustry =
+    async () => {
+      const name =
+        form.name.trim();
+
+      const description =
+        form.description.trim();
+
+      const focus =
+        form.focus
+          .map(
+            (item) =>
+              item.trim(),
+          )
+          .filter(Boolean);
+
+      if (!name) {
+        setError(
+          "Please enter the industry name.",
+        );
+        return;
+      }
+
+      if (!description) {
+        setError(
+          "Please enter the description.",
+        );
+        return;
+      }
+
+      if (focus.length === 0) {
+        setError(
+          "Please add at least one Key Focus Area.",
+        );
+        return;
+      }
+
+      setSaving(true);
+      setError("");
+
+      try {
+        const payload = {
+          name,
+          description,
+          focus,
+        };
+
+        const response =
+          await fetch(
+            "/api/admin/content/industries",
+            {
+              method:
+                editingId
+                  ? "PATCH"
+                  : "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify(
+                editingId
+                  ? {
+                      id: editingId,
+                      ...payload,
+                    }
+                  : {
+                      id: crypto.randomUUID(),
+                      ...payload,
+                    },
+              ),
+            },
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ??
+              "Unable to save industry",
+          );
+        }
+
+        /*
+         * Reload Admin from MongoDB.
+         */
+        await loadIndustries();
+
+        /*
+         * Tell Website to reload too.
+         */
+        notifyIndustryUpdate();
+
+        closeForm();
+      } catch (saveError) {
+        console.error(
+          "Failed to save industry:",
+          saveError,
+        );
+
+        setError(
+          saveError instanceof Error
+            ? saveError.message
+            : "Unable to save industry",
+        );
+      } finally {
+        setSaving(false);
       }
     };
 
-    void loadIndustries();
-  }, []);
+  const deleteIndustry =
+    async (
+      industry: Industry,
+    ) => {
+      const confirmed =
+        window.confirm(
+          `Delete "${industry.name}"?\n\nThis action cannot be undone.`,
+        );
 
-  const filteredIndustries = useMemo(() => {
-    const query = search.trim().toLowerCase();
+      if (!confirmed) {
+        return;
+      }
 
-    const result = industries.filter((industry) =>
-      industry.name.toLowerCase().includes(query),
-    );
+      try {
+        const response =
+          await fetch(
+            "/api/admin/content/industries",
+            {
+              method: "DELETE",
 
-    if (sortBy === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
 
-    if (sortBy === "clients") {
-      result.sort((a, b) => b.clients - a.clients);
-    }
+              body: JSON.stringify({
+                id: industry.id,
+              }),
+            },
+          );
 
-    if (sortBy === "projects") {
-      result.sort((a, b) => b.activeProjects - a.activeProjects);
-    }
+        const data =
+          await response.json();
 
-    return result;
-  }, [industries, search, sortBy]);
+        if (!response.ok) {
+          throw new Error(
+            data?.error ??
+              "Unable to delete industry",
+          );
+        }
 
-  const addIndustry = () => {
-    const name = industryName.trim();
+        setIndustries(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.id !==
+                industry.id,
+            ),
+        );
 
-    if (!name) {
-      return;
-    }
+        /*
+         * Tell Website to reload.
+         */
+        notifyIndustryUpdate();
+      } catch (deleteError) {
+        console.error(
+          "Failed to delete industry:",
+          deleteError,
+        );
 
-    const alreadyExists = industries.some(
-      (industry) =>
-        industry.name.toLowerCase() === name.toLowerCase(),
-    );
-
-    if (alreadyExists) {
-      return;
-    }
-
-    const newIndustry: Industry = {
-      id: crypto.randomUUID(),
-      name,
-      clients: 0,
-      activeProjects: 0,
+        window.alert(
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Unable to delete industry",
+        );
+      }
     };
 
-    setIndustries((current) => [...current, newIndustry]);
-    void fetch("/api/admin/content/industries", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newIndustry),
-    }).catch((error) => {
-      console.error("Failed to save industry to backend:", error);
-    });
-    setIndustryName("");
-    setShowAddIndustry(false);
-  };
-
-  const closeAddIndustry = () => {
-    setIndustryName("");
-    setShowAddIndustry(false);
-  };
-
   return (
-    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-6 lg:space-y-8">
+      {/* HEADER */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-display text-foreground">
+          <h2 className="font-display text-2xl font-bold text-foreground">
             Industries Management
           </h2>
 
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage industry sectors and monitor client distribution.
+          <p className="mt-1 text-sm text-muted-foreground">
+            Add, edit, and delete industries displayed on the website.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setShowAddIndustry(true)}
-            className="admin-btn-primary h-10 px-4 whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add New Industry
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={
+            openAddForm
+          }
+          className="admin-btn-primary h-10 px-4"
+        >
+          <Plus className="mr-1 h-4 w-4" />
+          Add New Industry
+        </button>
       </div>
 
-      {/* Action Bar */}
-      <div className="admin-card flex flex-col sm:flex-row gap-4 justify-between items-center p-4">
-        {/* Search */}
+      {/* SEARCH */}
+      <div className="admin-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(
+              event,
+            ) =>
+              setSearch(
+                event.target
+                  .value,
+              )
+            }
             placeholder="Search industries..."
-            className="w-full bg-secondary/50 border border-border focus:border-[#ff5a1f] rounded-lg pl-10 pr-10 py-2 text-sm outline-none transition-all"
+            className="w-full rounded-lg border border-border bg-secondary/50 py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-primary"
           />
 
           {search && (
             <button
               type="button"
-              onClick={() => setSearch("")}
+              onClick={() =>
+                setSearch("")
+              }
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               aria-label="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-48">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full appearance-none bg-secondary/50 border border-border focus:border-[#ff5a1f] rounded-lg pl-3 pr-8 py-2 text-sm outline-none transition-all cursor-pointer text-foreground"
-            >
-              <option value="">Sort By</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="clients">Most Clients</option>
-              <option value="projects">Most Projects</option>
-            </select>
+        <div className="relative w-full sm:w-48">
+          <select
+            value={sortBy}
+            onChange={(
+              event,
+            ) =>
+              setSortBy(
+                event.target
+                  .value,
+              )
+            }
+            className="w-full appearance-none rounded-lg border border-border bg-secondary/50 py-2.5 pl-3 pr-9 text-sm outline-none focus:border-primary"
+          >
+            <option value="">
+              Sort By
+            </option>
 
-            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+            <option value="name">
+              Name (A-Z)
+            </option>
+          </select>
+
+          <Filter className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+        </div>
+      </div>
+
+      {/* RESULT COUNT */}
+      {!loading && (
+        <div className="text-sm text-muted-foreground">
+          Showing{" "}
+          <span className="font-semibold text-foreground">
+            {
+              filteredIndustries.length
+            }
+          </span>{" "}
+          of{" "}
+          <span className="font-semibold text-foreground">
+            {
+              industries.length
+            }
+          </span>{" "}
+          industries
+        </div>
+      )}
+
+      {/* LOADING */}
+      {loading && (
+        <div className="admin-card p-12 text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+
+          <p className="mt-4 text-sm text-muted-foreground">
+            Loading industries...
+          </p>
+        </div>
+      )}
+
+      {/* ERROR */}
+      {!loading &&
+        error &&
+        !showForm && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Result Count */}
-      <div className="text-sm text-muted-foreground">
-        Showing{" "}
-        <span className="font-semibold text-foreground">
-          {filteredIndustries.length}
-        </span>{" "}
-        of{" "}
-        <span className="font-semibold text-foreground">
-          {industries.length}
-        </span>{" "}
-        industries
-      </div>
+      {/* GRID */}
+      {!loading &&
+        filteredIndustries.length >
+          0 && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredIndustries.map(
+              (industry) => (
+                <div
+                  key={
+                    industry.id
+                  }
+                  className="group flex h-full flex-col rounded-3xl border border-border bg-background p-7 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-elegant"
+                >
+                  {/* ICON + NAME */}
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-elegant transition-transform group-hover:scale-105">
+                      <Building2 className="h-7 w-7" />
+                    </div>
 
-      {/* Industries Grid */}
-      <div
-        className="admin-animate-in"
-        style={{ animationDelay: "100ms" }}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredIndustries.map((industry) => (
-            <div
-              key={industry.id}
-              className="admin-card flex flex-col hover:border-[#ff5a1f]/50 transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center group-hover:bg-[#ff5a1f]/10 transition-colors">
-                  <Building className="w-5 h-5 text-muted-foreground group-hover:text-[#ff5a1f] transition-colors" />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold text-foreground">
+                        {
+                          industry.name
+                        }
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* DESCRIPTION */}
+                  <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                    {
+                      industry.description
+                    }
+                  </p>
+
+                  {/* FOCUS */}
+                  <div className="mt-6 flex-grow">
+                    <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-foreground">
+                      Key Focus Areas
+                    </h4>
+
+                    <ul className="space-y-2">
+                      {industry.focus.map(
+                        (
+                          item,
+                          index,
+                        ) => (
+                          <li
+                            key={`${industry.id}-${index}-${item}`}
+                            className="flex items-start gap-2"
+                          >
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+
+                            <span className="text-sm text-muted-foreground">
+                              {item}
+                            </span>
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* ADMIN-ONLY ACTIONS */}
+                  <div className="mt-6 flex gap-2 border-t border-border/50 pt-5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openEditForm(
+                          industry,
+                        )
+                      }
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        deleteIndustry(
+                          industry,
+                        )
+                      }
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-500/10 px-3 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-500/20"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
+              ),
+            )}
+          </div>
+        )}
 
-                <h3 className="font-semibold text-lg">
-                  {industry.name}
-                </h3>
-              </div>
+      {/* EMPTY */}
+      {!loading &&
+        filteredIndustries.length ===
+          0 && (
+          <div className="admin-card p-12 text-center">
+            <Building2 className="mx-auto h-10 w-10 text-muted-foreground" />
 
-              <div className="flex justify-between items-center mt-auto pt-4 border-t border-border/50">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Clients
-                  </p>
-
-                  <p className="font-bold text-lg">
-                    {industry.clients}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Active Projects
-                  </p>
-
-                  <p className="font-bold text-lg">
-                    {industry.activeProjects}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* No Results */}
-        {filteredIndustries.length === 0 && (
-          <div className="admin-card mt-4 py-12 text-center">
-            <Building className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-
-            <h3 className="font-semibold text-lg">
+            <h3 className="mt-4 text-lg font-semibold text-foreground">
               No industries found
             </h3>
 
-            <p className="text-sm text-muted-foreground mt-1">
-              Try changing your search.
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try a different search or add
+              a new industry.
             </p>
           </div>
         )}
-      </div>
 
-      {/* Add New Industry Modal */}
-      {showAddIndustry && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              closeAddIndustry();
-            }
-          }}
-        >
-          <div className="w-full max-w-md rounded-2xl bg-background shadow-2xl border border-border">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+      {/* ADD / EDIT FORM */}
+      {showForm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-border bg-background shadow-2xl">
+            {/* HEADER */}
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-5">
               <div>
-                <h3 className="text-lg font-bold font-display">
-                  Add New Industry
+                <h3 className="font-display text-xl font-bold text-foreground">
+                  {editingId
+                    ? "Edit Industry"
+                    : "Add New Industry"}
                 </h3>
 
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter the industry name below.
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add the industry information displayed on the website.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={closeAddIndustry}
-                className="p-2 rounded-lg hover:bg-secondary transition"
+                onClick={
+                  closeForm
+                }
+                className="rounded-lg p-2 transition hover:bg-secondary"
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Form */}
-            <div className="p-6">
-              <label
-                htmlFor="industry-name"
-                className="admin-label"
-              >
-                Industry Name
-              </label>
+            {/* FORM */}
+            <div className="space-y-6 p-6">
+              {/* INDUSTRY NAME */}
+              <div>
+                <label
+                  htmlFor="industry-name"
+                  className="admin-label"
+                >
+                  Industry Name
+                </label>
 
-              <input
-                id="industry-name"
-                type="text"
-                autoFocus
-                value={industryName}
-                onChange={(e) => setIndustryName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    addIndustry();
+                <input
+                  id="industry-name"
+                  type="text"
+                  value={
+                    form.name
                   }
-
-                  if (e.key === "Escape") {
-                    closeAddIndustry();
+                  onChange={(
+                    event,
+                  ) =>
+                    setForm(
+                      (
+                        current,
+                      ) => ({
+                        ...current,
+                        name: event.target
+                          .value,
+                      }),
+                    )
                   }
-                }}
-                placeholder="Enter industry name"
-                className="admin-input mt-1.5"
-              />
+                  placeholder="e.g. Manufacturing"
+                  maxLength={120}
+                  className="admin-input mt-1.5"
+                />
+              </div>
 
-              {/* Buttons */}
-              <div className="flex justify-end gap-3 pt-5">
+              {/* DESCRIPTION */}
+              <div>
+                <label
+                  htmlFor="industry-description"
+                  className="admin-label"
+                >
+                  Description
+                </label>
+
+                <textarea
+                  id="industry-description"
+                  value={
+                    form.description
+                  }
+                  onChange={(
+                    event,
+                  ) =>
+                    setForm(
+                      (
+                        current,
+                      ) => ({
+                        ...current,
+                        description:
+                          event
+                            .target
+                            .value,
+                      }),
+                    )
+                  }
+                  placeholder="Describe how Almawa Services supports this industry..."
+                  rows={5}
+                  maxLength={500}
+                  className="admin-input mt-1.5 resize-none"
+                />
+
+                <p className="mt-1 text-right text-xs text-muted-foreground">
+                  {
+                    form
+                      .description
+                      .length
+                  }
+                  /500
+                </p>
+              </div>
+
+              {/* KEY FOCUS AREAS */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="admin-label">
+                    Key Focus Areas
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={
+                      addFocus
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Focus Area
+                  </button>
+                </div>
+
+                <div className="mt-3 space-y-3">
+                  {form.focus.map(
+                    (
+                      focus,
+                      index,
+                    ) => (
+                      <div
+                        key={
+                          index
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          type="text"
+                          value={
+                            focus
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            updateFocus(
+                              index,
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                          placeholder={`Focus area ${index + 1}`}
+                          className="admin-input flex-1"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeFocus(
+                              index,
+                            )
+                          }
+                          className="rounded-lg p-2.5 text-muted-foreground transition hover:bg-red-500/10 hover:text-red-600"
+                          aria-label="Remove focus area"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+
+              {/* ERROR */}
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {
+                    error
+                  }
+                </div>
+              )}
+
+              {/* BUTTONS */}
+              <div className="flex justify-end gap-3 border-t border-border pt-5">
                 <button
                   type="button"
-                  onClick={closeAddIndustry}
+                  onClick={
+                    closeForm
+                  }
+                  disabled={
+                    saving
+                  }
                   className="admin-btn-secondary"
                 >
                   Cancel
@@ -321,12 +1052,19 @@ export default function IndustriesManagementPage() {
 
                 <button
                   type="button"
-                  onClick={addIndustry}
-                  disabled={!industryName.trim()}
-                  className="admin-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={
+                    saveIndustry
+                  }
+                  disabled={
+                    saving
+                  }
+                  className="admin-btn-primary min-w-32"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Industry
+                  {saving
+                    ? "Saving..."
+                    : editingId
+                      ? "Save Changes"
+                      : "Add Industry"}
                 </button>
               </div>
             </div>
