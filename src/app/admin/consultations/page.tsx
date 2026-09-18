@@ -55,6 +55,7 @@ const EMPTY_FORM: ConsultationForm = {
 
 export default function ConsultationsManagementPage() {
   const { addConsultation } = useApp();
+
   const [consultations, setConsultations] =
     useState<Consultation[]>(
       consultationRequests as Consultation[],
@@ -286,6 +287,7 @@ export default function ConsultationsManagementPage() {
     setForm({
       ...EMPTY_FORM,
     });
+
     setFormError("");
   };
 
@@ -558,7 +560,7 @@ export default function ConsultationsManagementPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500">
-      
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -596,7 +598,7 @@ export default function ConsultationsManagementPage() {
 
       {/* Action Bar */}
       <div className="admin-card flex flex-col sm:flex-row gap-4 justify-between items-center p-4">
-        
+
         {/* Search */}
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -629,7 +631,7 @@ export default function ConsultationsManagementPage() {
 
         {/* Filters */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          
+
           {/* Status */}
           <div className="relative w-full sm:w-40">
             <select
@@ -738,17 +740,9 @@ export default function ConsultationsManagementPage() {
       {showSchedule && (
         <div
           className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4"
-          onMouseDown={(e) => {
-            if (
-              e.target ===
-              e.currentTarget
-            ) {
-              closeSchedule();
-            }
-          }}
         >
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-background shadow-2xl border border-border">
-            
+
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
                 <h3 className="text-lg font-bold font-display">
@@ -772,6 +766,7 @@ export default function ConsultationsManagementPage() {
             </div>
 
             <div className="p-6 space-y-4">
+
               {/* Client */}
               <div>
                 <label className="admin-label">
@@ -991,17 +986,9 @@ export default function ConsultationsManagementPage() {
       {editingConsultation && (
         <div
           className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4"
-          onMouseDown={(e) => {
-            if (
-              e.target ===
-              e.currentTarget
-            ) {
-              closeEdit();
-            }
-          }}
         >
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-background shadow-2xl border border-border">
-            
+
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
                 <h3 className="text-lg font-bold font-display">
@@ -1023,6 +1010,7 @@ export default function ConsultationsManagementPage() {
             </div>
 
             <div className="p-6 space-y-4">
+
               <div>
                 <label className="admin-label">
                   Client Name
@@ -1224,17 +1212,9 @@ export default function ConsultationsManagementPage() {
       {deleteTarget && (
         <div
           className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4"
-          onMouseDown={(e) => {
-            if (
-              e.target ===
-              e.currentTarget
-            ) {
-              setDeleteTarget(null);
-            }
-          }}
         >
           <div className="w-full max-w-md rounded-2xl bg-background shadow-2xl border border-border">
-            
+
             <div className="px-6 py-5 border-b border-border">
               <h3 className="text-lg font-bold font-display">
                 Delete Consultation?
