@@ -441,21 +441,25 @@ export function AppProvider({
           await Promise.all([
             fetch("/api/leads"),
             fetch("/api/consultations"),
-            fetch("/api/admin/content/services"),
+            fetch("/api/admin/services"),
             fetch("/api/admin/content/blogs"),
             fetch("/api/admin/content/testimonials"),
           ]);
 
-        if (!leadsResponse.ok || !consultationsResponse.ok) {
-          return;
-        }
-
-        const backendLeads = await leadsResponse.json();
-        const backendConsultations =
-          await consultationsResponse.json();
-        const backendServices = servicesResponse.ok
+        const backendLeads = leadsResponse.ok
+          ? await leadsResponse.json()
+          : [];
+        const backendConsultations = consultationsResponse.ok
+          ? await consultationsResponse.json()
+          : [];
+        const servicesPayload = servicesResponse.ok
           ? await servicesResponse.json()
           : [];
+        const backendServices = Array.isArray(servicesPayload)
+          ? servicesPayload
+          : Array.isArray(servicesPayload.data)
+            ? servicesPayload.data
+            : [];
         const backendBlogs = blogsResponse.ok
           ? await blogsResponse.json()
           : [];

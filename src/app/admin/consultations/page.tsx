@@ -8,16 +8,12 @@ import {
   X,
   Save,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   ConsultationTable,
 } from "@/components/admin/ConsultationTable";
 import { useApp } from "@/context/AppContext";
-
-import {
-  consultationRequests,
-} from "@/lib/admin-data";
 
 type Consultation = {
   id: string | number;
@@ -57,9 +53,9 @@ export default function ConsultationsManagementPage() {
   const { addConsultation } = useApp();
 
   const [consultations, setConsultations] =
-    useState<Consultation[]>(
-      consultationRequests as Consultation[],
-    );
+    useState<Consultation[]>([]);
+
+  const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
@@ -81,6 +77,33 @@ export default function ConsultationsManagementPage() {
 
   const [formError, setFormError] =
     useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadConsultations = async () => {
+      try {
+        const response = await fetch("/api/consultations", {
+          cache: "no-store",
+        });
+        const data = await response.json();
+
+        if (!cancelled && response.ok && Array.isArray(data)) {
+          setConsultations(data);
+        }
+      } catch (error) {
+        console.error("Failed to load consultations:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadConsultations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /* -------------------------------------------------------
      SEARCH + FILTER
@@ -706,7 +729,9 @@ export default function ConsultationsManagementPage() {
 
       {/* Result Count */}
       <div className="text-sm text-muted-foreground">
-        Showing{" "}
+        {loading ? "Loading consultations..." : "Showing "}
+        {!loading && (
+          <>
         <span className="font-semibold text-foreground">
           {filteredConsultations.length}
         </span>{" "}
@@ -715,6 +740,8 @@ export default function ConsultationsManagementPage() {
           {consultations.length}
         </span>{" "}
         consultations
+          </>
+        )}
       </div>
 
       {/* Consultations Table */}

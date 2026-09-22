@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Users,
-  Briefcase,
-  Layers,
+  CalendarDays,
+  CheckCircle2,
+  Tag,
 } from "lucide-react";
 
 import {
@@ -21,9 +21,11 @@ interface ServiceSummary {
   name: string;
   title: string;
   slug: string;
-  clients: number;
-  projects: number;
-  offerings: number;
+  category: string;
+  status: string;
+  displayOrder: number;
+  shortDescription: string;
+  createdAt: string;
 }
 
 interface ServicesSummaryProps {
@@ -49,7 +51,7 @@ export function ServicesSummary({
           <div className="admin-card-header mb-4">
             <div className="admin-card-title">
               <span className="title-dot" />
-              Services Performance
+              Recent Services
             </div>
 
             {enableNavigation && (
@@ -79,45 +81,24 @@ export function ServicesSummary({
                   {service.title || service.name}
                 </h4>
 
-                <div className="grid grid-cols-3 gap-3">
-                  {/* CLIENTS */}
-                  <div>
-                    <Users className="w-4 h-4 text-blue-500 mb-1" />
+                <p className="min-h-10 text-xs leading-5 text-muted-foreground line-clamp-2">
+                  {service.shortDescription || "No description available."}
+                </p>
 
-                    <p className="text-xl font-bold font-display">
-                      {service.clients}
-                    </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1">
+                    <Tag className="h-3 w-3" />
+                    {service.category || "Uncategorized"}
+                  </span>
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${service.status.toLowerCase() === "active" ? "bg-emerald-500/10 text-emerald-700" : "bg-secondary"}`}>
+                    <CheckCircle2 className="h-3 w-3" />
+                    {service.status}
+                  </span>
+                </div>
 
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Clients
-                    </p>
-                  </div>
-
-                  {/* PROJECTS */}
-                  <div>
-                    <Briefcase className="w-4 h-4 text-emerald-500 mb-1" />
-
-                    <p className="text-xl font-bold font-display">
-                      {service.projects}
-                    </p>
-
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Projects
-                    </p>
-                  </div>
-
-                  {/* OFFERINGS */}
-                  <div>
-                    <Layers className="w-4 h-4 text-purple-500 mb-1" />
-
-                    <p className="text-xl font-bold font-display">
-                      {service.offerings}
-                    </p>
-
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Offerings
-                    </p>
-                  </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Order {service.displayOrder}</span>
+                  <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(service.createdAt).toLocaleDateString()}</span>
                 </div>
 
                 {/* VIEW DETAILS */}
@@ -155,43 +136,25 @@ export function ServicesSummary({
             </DialogTitle>
 
             <DialogDescription className="text-xs">
-              Service performance details.
+              Service details.
             </DialogDescription>
           </DialogHeader>
 
           {selectedService && (
             <div className="space-y-2">
-              {/* CLIENTS */}
               <div className="rounded-md border border-border bg-secondary/40 px-3 py-2">
-                <p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                  Clients
-                </p>
-
-                <p className="mt-0.5 text-lg font-bold">
-                  {selectedService.clients}
-                </p>
+                <p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">Category</p>
+                <p className="mt-0.5 text-sm font-semibold">{selectedService.category || "Uncategorized"}</p>
               </div>
 
-              {/* PROJECTS */}
               <div className="rounded-md border border-border bg-secondary/40 px-3 py-2">
-                <p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                  Projects
-                </p>
-
-                <p className="mt-0.5 text-lg font-bold">
-                  {selectedService.projects}
-                </p>
+                <p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">Description</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{selectedService.shortDescription || "No description available."}</p>
               </div>
 
-              {/* OFFERINGS */}
-              <div className="rounded-md border border-border bg-secondary/40 px-3 py-2">
-                <p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                  Offerings
-                </p>
-
-                <p className="mt-0.5 text-lg font-bold">
-                  {selectedService.offerings}
-                </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-md border border-border bg-secondary/40 px-3 py-2"><p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">Status</p><p className="mt-0.5 text-sm font-semibold">{selectedService.status}</p></div>
+                <div className="rounded-md border border-border bg-secondary/40 px-3 py-2"><p className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">Order</p><p className="mt-0.5 text-sm font-semibold">{selectedService.displayOrder}</p></div>
               </div>
 
               {enableNavigation && (
