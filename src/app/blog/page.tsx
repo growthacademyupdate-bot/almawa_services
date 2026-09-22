@@ -73,6 +73,7 @@ export default function BlogPage() {
       {/* Blog listing */}
       <Section>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-10">
+
           {/* Search */}
           <div className="relative w-full sm:max-w-sm">
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -120,12 +121,26 @@ export default function BlogPage() {
                   href={`/blog/${blog.slug}`}
                   className="group h-full flex flex-col rounded-3xl overflow-hidden border border-border bg-background hover-lift"
                 >
+                  {/* Blog Image */}
                   <div className="aspect-[16/10] overflow-hidden">
-                    <img
-                      src={blog.image}
-                      alt={blog.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
-                    />
+                    {blog.image ? (
+                      <img
+                        src={blog.image}
+                        alt={blog.title}
+                        className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                      />
+                    ) : (
+                      <div
+                        aria-hidden="true"
+                        className="flex h-full w-full items-center justify-center bg-secondary"
+                      >
+                        <span className="text-5xl font-black text-primary">
+                          {blog.title
+                            ?.charAt(0)
+                            ?.toUpperCase() || "B"}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-6 flex-1 flex flex-col">
