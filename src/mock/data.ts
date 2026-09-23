@@ -30,22 +30,20 @@ export const heroSlides = [
   {
     id: "h1",
     enabled: true,
-    title: "Empowering Businesses Through Smart Consulting",
+    title: "Udyam Registration for MSMEs",
     subtitle:
-      "Helping Startups, MSMEs and Growing Businesses with Registration, Certifications, Fund Raising, Digital Marketing and Company Profiling.",
-    image:
-      "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1920&q=80",
-    cta: "Get Free Consultation",
+      "Unlock official MSME recognition and access the benefits designed to help your business grow.",
+    image: "/udyam-registration-hero.jpeg?v=2",
+    cta: "Get Udyam Registration",
   },
   {
     id: "h2",
     enabled: true,
-    title: "From Idea to Incorporation — We Handle It All",
+    title: "GST Registration Made Simple",
     subtitle:
-      "Private Limited, LLP, OPC, Startup India, MSME, GST — end-to-end registration by seasoned consultants.",
-    image:
-      "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1920&q=80",
-    cta: "Explore Services",
+      "Get your GST registration completed correctly so your business can invoice, grow and stay compliant.",
+    image: "/gst-registration-hero.jpeg?v=2",
+    cta: "Get GST Registration",
   },
   {
     id: "h3",

@@ -553,7 +553,15 @@ export function AppProvider({
           ) as Partial<State>;
 
         setState(
-          (current) => ({
+          (current) => {
+            const savedHero = parsed.hero?.filter(
+              (slide) => slide.id !== "gst-registration" && slide.id !== "udyam-registration",
+            );
+            const mergedHero = current.hero.map((slide) =>
+              savedHero?.find((savedSlide) => savedSlide.id === slide.id) ?? slide,
+            );
+
+            return {
             ...current,
             ...parsed,
 
@@ -565,6 +573,12 @@ export function AppProvider({
                 ...(parsed.settings?.social ?? {}),
               },
             },
+
+            hero: mergedHero.map((slide) =>
+              slide.id === "h1" || slide.id === "h2"
+                ? current.hero.find((currentSlide) => currentSlide.id === slide.id) ?? slide
+                : slide,
+            ),
 
             leads:
               parsed.leads?.length
@@ -588,7 +602,8 @@ export function AppProvider({
              */
             isAdmin: false,
 
-          }),
+            };
+          },
         );
       }
     } catch (error) {
