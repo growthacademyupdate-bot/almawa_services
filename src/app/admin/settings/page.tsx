@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Save } from "lucide-react";
 import {
   useApp,
@@ -18,6 +18,15 @@ export default function SettingsManagementPage() {
   }));
 
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      ...settings,
+      social: {
+        ...settings.social,
+      },
+    });
+  }, [settings]);
 
   const updateField = (
     field: keyof Settings,
@@ -52,28 +61,20 @@ export default function SettingsManagementPage() {
     event.preventDefault();
 
     try {
-      /*
-       * Save maintenance mode to the backend/database.
-       */
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          maintenanceMode: form.maintenanceMode,
-        }),
+        body: JSON.stringify(form),
       });
 
       if (!response.ok) {
         throw new Error(
-          "Failed to save maintenance mode",
+          "Failed to save settings",
         );
       }
 
-      /*
-       * Keep the rest of the settings in AppContext.
-       */
       updateSettings(form);
 
       setSaved(true);
@@ -153,6 +154,17 @@ export default function SettingsManagementPage() {
             onChange={(value) =>
               updateField(
                 "phone",
+                value,
+              )
+            }
+          />
+
+          <Field
+            label="Second phone"
+            value={form.phoneTwo}
+            onChange={(value) =>
+              updateField(
+                "phoneTwo",
                 value,
               )
             }

@@ -48,7 +48,7 @@ const NAV_ITEMS = [
     icon: MessageSquare,
   },
   {
-    href: "/admin/blogs",
+    href: "/admin/blog",
     label: "Blog",
     icon: FileText,
   },
@@ -100,36 +100,28 @@ export function AdminSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0A0F1C] text-slate-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-64 border-r border-white/5 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 overflow-hidden bg-[#0A0F1C] text-slate-300 transform transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:w-64 border-r border-white/5 flex flex-col ${
           isOpen
             ? "translate-x-0"
             : "-translate-x-full"
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 shrink-0 border-b border-white/5">
+        <div className="h-16 flex items-center px-5 shrink-0 border-b border-white/5">
           <Link
             href="/admin"
-            className="flex items-center gap-3"
+            className="flex items-center"
           >
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ff5a1f] to-[#ff8052] flex items-center justify-center text-white font-bold text-lg shadow-glow">
-              A
-            </div>
-
-            <div>
-              <div className="font-display font-bold text-white leading-tight">
-                Almawa Services
-              </div>
-
-              <div className="text-[10px] uppercase tracking-wider text-[#ff5a1f] font-bold">
-                Business Consulting
-              </div>
-            </div>
+            <img
+              src="/almawa-logo.svg"
+              alt="Almawa Services"
+              className="h-12 w-auto max-w-[180px] object-contain"
+            />
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+        <nav className="min-h-0 flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/admin"

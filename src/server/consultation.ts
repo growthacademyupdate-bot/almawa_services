@@ -9,6 +9,7 @@ export type ConsultationInput = {
   service: string;
   stage: string;
   message: string;
+  company?: string;
 };
 
 export async function createConsultation({

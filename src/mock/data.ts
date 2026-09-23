@@ -530,14 +530,15 @@ export const gallerySeed = [
 export const defaultSettings = {
   companyName: "Almawa Services",
   tagline: "Empowering Businesses Through Smart Consulting",
-  phone: "+91 98765 43210",
-  email: "hello@almawaservices.com",
+  phone: "+91 9561179693",
+  phoneTwo: "+91 9561106693",
+  email: "business@al-mawa.international",
   address: "1st Floor, Corporate Tower, MG Road, Bengaluru, India",
   social: {
-    linkedin: "https://linkedin.com",
-    twitter: "https://twitter.com",
-    facebook: "https://facebook.com",
-    instagram: "https://instagram.com",
+    twitter: "https://x.com/al_mawa__",
+    linkedin: "https://www.linkedin.com/company/al-mawa-international-opc-private-limited/posts/?feedView=all",
+    instagram: "https://www.instagram.com/al_mawainternational?igsh=MXJkbWt3b3NvOTBmaw%3D%3D",
+    facebook: "https://www.facebook.com/almawainternational",
   },
   seoTitle: "Almawa Services — Business Consulting, Incorporation & Fund Raising",
   seoDescription:

@@ -16,10 +16,6 @@ import { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { services } from "@/mock/data";
 
-const CONTACT_EMAIL = "business@al-mawa.international";
-const PHONE_ONE = "+91 9561179693";
-const PHONE_TWO = "+91 9561106693";
-
 const PUNE_LOCATION =
   "AL-MAWA INTERNATIONAL PUNE Location";
 
@@ -35,22 +31,22 @@ export function Footer() {
   const socialLinks = [
     {
       icon: FaXTwitter,
-      href: "https://x.com/al_mawa__",
+      href: settings.social.twitter,
       label: "X",
     },
     {
       icon: FaLinkedin,
-      href: "https://www.linkedin.com/company/al-mawa-international-opc-private-limited/posts/?feedView=all",
+      href: settings.social.linkedin,
       label: "LinkedIn",
     },
     {
       icon: FaFacebook,
-      href: "https://www.facebook.com/almawainternational",
+      href: settings.social.facebook,
       label: "Facebook",
     },
     {
       icon: FaInstagram,
-      href: "https://www.instagram.com/al_mawainternational",
+      href: settings.social.instagram,
       label: "Instagram",
     },
   ];
@@ -62,22 +58,12 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <div className="mb-4 flex items-center gap-2.5">
-              <div className="grid h-11 w-11 place-items-center rounded-xl gradient-primary shadow-elegant">
-                <span className="text-lg font-black text-primary-foreground">
-                  A
-                </span>
-              </div>
-
-              <div>
-                <div className="font-display text-lg font-extrabold">
-                  {settings.companyName}
-                </div>
-
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-glow">
-                  Business Consulting
-                </div>
-              </div>
+            <div className="mb-4">
+              <img
+                src="/almawa-logo.svg"
+                alt={settings.companyName}
+                className="h-16 w-auto max-w-[230px] object-contain"
+              />
             </div>
 
             <p className="text-sm leading-relaxed text-navy-foreground/70">
@@ -168,10 +154,10 @@ export function Footer() {
                 <HiMail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${settings.email}`}
                   className="transition hover:text-primary"
                 >
-                  {CONTACT_EMAIL}
+                  {settings.email}
                 </a>
               </li>
 
@@ -181,10 +167,10 @@ export function Footer() {
 
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <a
-                    href="tel:+919561179693"
+                    href={`tel:${settings.phone.replace(/[^+\d]/g, "")}`}
                     className="transition hover:text-primary"
                   >
-                    {PHONE_ONE}
+                    {settings.phone}
                   </a>
 
                   <span className="text-navy-foreground/50">
@@ -192,10 +178,10 @@ export function Footer() {
                   </span>
 
                   <a
-                    href="tel:+919561106693"
+                    href={`tel:${settings.phoneTwo.replace(/[^+\d]/g, "")}`}
                     className="transition hover:text-primary"
                   >
-                    {PHONE_TWO}
+                    {settings.phoneTwo}
                   </a>
                 </div>
               </li>

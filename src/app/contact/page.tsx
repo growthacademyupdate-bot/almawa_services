@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { HiCheckCircle, HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
 import { Section } from "@/components/site/primitives";
 import { serviceOptions } from "@/mock/data";
+import { useApp } from "@/context/AppContext";
 
 type ContactForm = {
   firstname: string;
@@ -34,11 +35,8 @@ const initialForm: ContactForm = {
   msg: "",
 };
 
-const CONTACT_EMAIL = "business@al-mawa.international";
-const PHONE_ONE = "+91 9561179693";
-const PHONE_TWO = "+91 9561106693";
-
 export default function ContactPage() {
+  const { settings } = useApp();
   const [form, setForm] = useState<ContactForm>(initialForm);
   const [errors, setErrors] = useState<
     Partial<Record<keyof ContactForm, string>>
@@ -481,13 +479,13 @@ export default function ContactPage() {
               <div className="mt-5 space-y-4 text-sm">
                 {/* Email */}
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${settings.email}`}
                   className="flex items-start gap-3 transition hover:text-primary-glow"
                 >
                   <HiMail className="mt-0.5 h-5 w-5 shrink-0 text-primary-glow" />
 
                   <span>
-                    {CONTACT_EMAIL}
+                    {settings.email}
                   </span>
                 </a>
 
@@ -497,10 +495,10 @@ export default function ContactPage() {
 
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <a
-                      href="tel:+919561179693"
+                      href={`tel:${settings.phone.replace(/[^+\d]/g, "")}`}
                       className="transition hover:text-primary-glow"
                     >
-                      {PHONE_ONE}
+                      {settings.phone}
                     </a>
 
                     <span className="text-navy-foreground/50">
@@ -508,10 +506,10 @@ export default function ContactPage() {
                     </span>
 
                     <a
-                      href="tel:+919561106693"
+                      href={`tel:${settings.phoneTwo.replace(/[^+\d]/g, "")}`}
                       className="transition hover:text-primary-glow"
                     >
-                      {PHONE_TWO}
+                      {settings.phoneTwo}
                     </a>
                   </div>
                 </div>
