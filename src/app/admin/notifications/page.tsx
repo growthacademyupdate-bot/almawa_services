@@ -5,9 +5,12 @@ import {
   CalendarDays,
   CheckCheck,
   ChevronRight,
+  Link as LinkIcon,
+  Plus,
   Users,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useApp } from "@/context/AppContext";
@@ -19,6 +22,14 @@ type NotificationItem = {
   date: string;
   route: string;
   type: "lead" | "consultation";
+};
+
+type SiteNotification = {
+  id: string;
+  title: string;
+  message: string;
+  link?: string;
+  createdAt: string;
 };
 
 function formatDate(value: string) {
@@ -46,6 +57,17 @@ export default function NotificationsPage() {
   const router = useRouter();
 
   const [readIds, setReadIds] = useState<string[]>([]);
+  const [siteNotifications, setSiteNotifications] = useState<SiteNotification[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [form, setForm] = useState({ title: "", message: "", link: "" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/notifications", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data: SiteNotification[]) => setSiteNotifications(Array.isArray(data) ? data : []))
+      .catch(() => setSiteNotifications([]));
+  }, []);
 
   const notifications = useMemo<NotificationItem[]>(() => {
     const items: NotificationItem[] = [
@@ -120,6 +142,33 @@ export default function NotificationsPage() {
     );
   };
 
+  const createNotification = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const created = (await response.json()) as SiteNotification & { error?: string };
+      if (!response.ok) throw new Error(created.error || "Unable to create notification");
+      setSiteNotifications((current) => [created, ...current]);
+      setForm({ title: "", message: "", link: "" });
+      setShowCreateForm(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Unable to create notification");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteSiteNotification = async (id: string) => {
+    if (!window.confirm("Delete this website notification?")) return;
+    const response = await fetch(`/api/notifications?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (response.ok) setSiteNotifications((current) => current.filter((notification) => notification.id !== id));
+  };
+
   return (
     <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-300">
 
@@ -143,17 +192,34 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={markAllRead}
-            className="admin-btn-secondary"
-          >
-            <CheckCheck className="mr-2 h-4 w-4" />
-            Mark all as read
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {unreadCount > 0 && (
+            <button type="button" onClick={markAllRead} className="admin-btn-secondary"><CheckCheck className="mr-2 h-4 w-4" />Mark all as read</button>
+          )}
+          <button type="button" onClick={() => setShowCreateForm((current) => !current)} className="admin-btn-primary"><Plus className="mr-2 h-4 w-4" />Create notification</button>
+        </div>
       </div>
+
+      {showCreateForm && (
+        <form onSubmit={createNotification} className="admin-card space-y-4">
+          <div><h3 className="font-bold font-display">New website notification</h3><p className="mt-1 text-sm text-muted-foreground">This will appear in the notification bell on the public website.</p></div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="text-sm font-medium">Title<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="New service available" className="admin-input mt-1" /></label>
+            <label className="text-sm font-medium">Link (optional)<div className="relative mt-1"><LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={form.link} onChange={(event) => setForm({ ...form, link: event.target.value })} placeholder="/services" className="admin-input pl-9" /></div></label>
+          </div>
+          <label className="block text-sm font-medium">Message<textarea required value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Tell visitors what is new..." rows={3} className="admin-input mt-1 resize-y" /></label>
+          <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowCreateForm(false)} className="admin-btn-secondary"><X className="mr-2 h-4 w-4" />Cancel</button><button type="submit" disabled={saving} className="admin-btn-primary">{saving ? "Publishing..." : "Publish notification"}</button></div>
+        </form>
+      )}
+
+      {siteNotifications.length > 0 && (
+        <div className="admin-card overflow-hidden p-0">
+          <div className="border-b border-border px-5 py-4"><h3 className="font-bold font-display">Website notifications</h3><p className="mt-1 text-xs text-muted-foreground">Published notices shown to website visitors.</p></div>
+          {siteNotifications.map((notification) => (
+            <div key={notification.id} className="flex items-start gap-4 border-b border-border px-5 py-4 last:border-b-0"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"><Bell className="h-5 w-5 text-primary" /></div><div className="min-w-0 flex-1"><h4 className="font-semibold">{notification.title}</h4><p className="mt-1 text-sm text-muted-foreground">{notification.message}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(notification.createdAt)}</p></div><button type="button" aria-label={`Delete ${notification.title}`} onClick={() => void deleteSiteNotification(notification.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="h-4 w-4" /></button></div>
+          ))}
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

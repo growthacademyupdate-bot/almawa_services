@@ -4,10 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { HiMenu, HiX, HiChevronDown } from "react-icons/hi";
+import { Bell, X } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { services } from "@/mock/data";
 
 type NavItem = { to: string; label: string; hasDropdown?: boolean };
+type SiteNotification = {
+  id: string;
+  title: string;
+  message: string;
+  link?: string;
+  createdAt: string;
+};
 const NAV: NavItem[] = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
@@ -25,6 +33,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
+  const [notifications, setNotifications] = useState<SiteNotification[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
 
   const isHome = pathname === "/";
   const solid = !isHome || scrolled;
@@ -40,6 +51,21 @@ export function Navbar() {
     setMobileOpen(false);
     setDropdown(false);
   }, [pathname]);
+
+  useEffect(() => {
+    void fetch("/api/notifications", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data: SiteNotification[]) => setNotifications(Array.isArray(data) ? data : []))
+      .catch(() => setNotifications([]));
+  }, []);
+
+  const unreadCount = notifications.filter((notification) => !readNotificationIds.includes(notification.id)).length;
+
+  const openNotification = (notification: SiteNotification) => {
+    setReadNotificationIds((current) => current.includes(notification.id) ? current : [...current, notification.id]);
+    setNotificationsOpen(false);
+    if (notification.link) window.location.href = notification.link;
+  };
 
   return (
     <header
@@ -170,6 +196,24 @@ export function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2 shrink-0">
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="Website notifications"
+                aria-expanded={notificationsOpen}
+                onClick={() => setNotificationsOpen((current) => !current)}
+                className={`relative grid h-10 w-10 place-items-center rounded-full transition ${solid ? "text-foreground hover:bg-secondary" : "text-white hover:bg-white/10"}`}
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && <span className="absolute right-1 top-1 min-w-4 rounded-full bg-[#ff5a1f] px-1 text-[10px] font-bold leading-4 text-white">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+              </button>
+              {notificationsOpen && (
+                <div className="absolute right-0 top-12 z-[60] w-[330px] overflow-hidden rounded-2xl border border-border bg-background text-foreground shadow-elegant">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3"><div><h3 className="text-sm font-semibold">Notifications</h3><p className="text-xs text-muted-foreground">{unreadCount} unread</p></div><button type="button" aria-label="Close notifications" onClick={() => setNotificationsOpen(false)} className="rounded-lg p-1.5 hover:bg-secondary"><X className="h-4 w-4" /></button></div>
+                  {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-muted-foreground">No notifications yet</p> : <div className="max-h-80 overflow-y-auto">{notifications.map((notification) => <button key={notification.id} type="button" onClick={() => openNotification(notification)} className="block w-full border-b border-border px-4 py-3 text-left hover:bg-secondary"><p className={`text-sm ${readNotificationIds.includes(notification.id) ? "font-medium" : "font-bold"}`}>{notification.title}</p><p className="mt-1 text-xs text-muted-foreground">{notification.message}</p></button>)}</div>}
+                </div>
+              )}
+            </div>
             <button
               onClick={() => openConsultation()}
               className="inline-flex items-center gap-2 rounded-full gradient-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-elegant hover:shadow-glow transition-all hover:scale-[1.03]"
@@ -208,6 +252,8 @@ export function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              <button type="button" onClick={() => setNotificationsOpen((current) => !current)} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-secondary"><Bell className="h-4 w-4 text-primary" />Notifications{unreadCount > 0 && <span className="rounded-full bg-[#ff5a1f] px-1.5 text-[10px] font-bold text-white">{unreadCount}</span>}</button>
+              {notificationsOpen && <div className="mx-3 mb-2 overflow-hidden rounded-xl border border-border"><div className="flex items-center justify-between border-b border-border px-3 py-2"><span className="text-xs font-semibold">Latest updates</span><button type="button" aria-label="Close notifications" onClick={() => setNotificationsOpen(false)}><X className="h-4 w-4" /></button></div>{notifications.length === 0 ? <p className="px-3 py-4 text-xs text-muted-foreground">No notifications yet</p> : notifications.map((notification) => <button key={notification.id} type="button" onClick={() => openNotification(notification)} className="block w-full border-b border-border px-3 py-2 text-left last:border-0 hover:bg-secondary"><p className="text-xs font-semibold">{notification.title}</p><p className="mt-1 text-[11px] text-muted-foreground">{notification.message}</p></button>)}</div>}
               <div className="mt-2 pl-2 flex flex-col gap-0.5 border-l-2 border-primary/30">
                 {services.map((s) => (
                   <Link
