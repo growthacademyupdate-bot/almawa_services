@@ -5,11 +5,32 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { AppProvider } from "@/context/AppContext";
+import { useApp } from "@/context/AppContext";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { ConsultationModal } from "@/components/site/ConsultationModal";
+import { WelcomePopup } from "@/components/site/ConsultationModal";
+import { LegacyConsultationModal } from "@/components/site/LegacyConsultationModal";
 import { AdminLoginModal } from "@/components/site/AdminLoginModal";
 import { Toaster } from "@/components/ui/sonner";
+
+function WelcomeConsultationPopup() {
+  const { openWelcomePopup } = useApp();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("almawa-consultation-popup-shown")) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      openWelcomePopup();
+      sessionStorage.setItem("almawa-consultation-popup-shown", "true");
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [openWelcomePopup]);
+
+  return null;
+}
 
 function MaintenanceGate({
   children,
@@ -149,7 +170,9 @@ function MaintenanceGate({
 
       <Footer />
 
-      <ConsultationModal />
+      <WelcomeConsultationPopup />
+      <WelcomePopup />
+      <LegacyConsultationModal />
       <AdminLoginModal />
 
       <Toaster />

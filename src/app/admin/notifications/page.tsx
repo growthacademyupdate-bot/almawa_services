@@ -6,7 +6,9 @@ import {
   CheckCheck,
   ChevronRight,
   Link as LinkIcon,
+  Pencil,
   Plus,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -32,6 +34,8 @@ type SiteNotification = {
   createdAt: string;
 };
 
+const READ_NOTIFICATIONS_KEY = "almawa-admin-read-notifications";
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -52,6 +56,8 @@ export default function NotificationsPage() {
   const {
     leads,
     consultations,
+    deleteLead,
+    deleteConsultation,
   } = useApp();
 
   const router = useRouter();
@@ -59,10 +65,25 @@ export default function NotificationsPage() {
   const [readIds, setReadIds] = useState<string[]>([]);
   const [siteNotifications, setSiteNotifications] = useState<SiteNotification[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingNotificationId, setEditingNotificationId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", message: "", link: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    try {
+      const storedReadIds = window.localStorage.getItem(READ_NOTIFICATIONS_KEY);
+
+      if (storedReadIds) {
+        const parsedReadIds = JSON.parse(storedReadIds);
+
+        if (Array.isArray(parsedReadIds)) {
+          setReadIds(parsedReadIds.filter((id): id is string => typeof id === "string"));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load notification read state:", error);
+    }
+
     void fetch("/api/notifications", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : []))
       .then((data: SiteNotification[]) => setSiteNotifications(Array.isArray(data) ? data : []))
@@ -117,29 +138,47 @@ export default function NotificationsPage() {
   ).length;
 
   const markAllRead = () => {
-    setReadIds(
-      notifications.map(
-        (notification) =>
-          notification.id,
-      ),
-    );
+    const allReadIds = notifications.map((notification) => notification.id);
+    setReadIds(allReadIds);
+    window.localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(allReadIds));
   };
 
   const handleNotificationClick = (
     notification: NotificationItem,
   ) => {
-    setReadIds((current) =>
-      current.includes(notification.id)
-        ? current
-        : [
-            ...current,
-            notification.id,
-          ],
-    );
+    setReadIds((current) => {
+      if (current.includes(notification.id)) {
+        return current;
+      }
+
+      const nextReadIds = [...current, notification.id];
+      window.localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(nextReadIds));
+      return nextReadIds;
+    });
 
     router.push(
       notification.route,
     );
+  };
+
+  const handleNotificationDelete = (notification: NotificationItem) => {
+    if (!window.confirm(`Delete this ${notification.type} notification?`)) {
+      return;
+    }
+
+    const recordId = notification.id.replace(`${notification.type}-`, "");
+
+    if (notification.type === "lead") {
+      deleteLead(recordId);
+    } else {
+      deleteConsultation(recordId);
+    }
+
+    setReadIds((current) => {
+      const nextReadIds = current.filter((id) => id !== notification.id);
+      window.localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(nextReadIds));
+      return nextReadIds;
+    });
   };
 
   const createNotification = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -147,20 +186,41 @@ export default function NotificationsPage() {
     setSaving(true);
     try {
       const response = await fetch("/api/notifications", {
-        method: "POST",
+        method: editingNotificationId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(
+          editingNotificationId
+            ? { id: editingNotificationId, ...form }
+            : form,
+        ),
       });
       const created = (await response.json()) as SiteNotification & { error?: string };
-      if (!response.ok) throw new Error(created.error || "Unable to create notification");
-      setSiteNotifications((current) => [created, ...current]);
+      if (!response.ok) throw new Error(created.error || "Unable to save notification");
+      setSiteNotifications((current) =>
+        editingNotificationId
+          ? current.map((notification) =>
+              notification.id === editingNotificationId ? created : notification,
+            )
+          : [created, ...current],
+      );
       setForm({ title: "", message: "", link: "" });
       setShowCreateForm(false);
+      setEditingNotificationId(null);
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Unable to create notification");
     } finally {
       setSaving(false);
     }
+  };
+
+  const editSiteNotification = (notification: SiteNotification) => {
+    setForm({
+      title: notification.title,
+      message: notification.message,
+      link: notification.link ?? "",
+    });
+    setEditingNotificationId(notification.id);
+    setShowCreateForm(true);
   };
 
   const deleteSiteNotification = async (id: string) => {
@@ -202,13 +262,13 @@ export default function NotificationsPage() {
 
       {showCreateForm && (
         <form onSubmit={createNotification} className="admin-card space-y-4">
-          <div><h3 className="font-bold font-display">New website notification</h3><p className="mt-1 text-sm text-muted-foreground">This will appear in the notification bell on the public website.</p></div>
+          <div><h3 className="font-bold font-display">{editingNotificationId ? "Edit website notification" : "New website notification"}</h3><p className="mt-1 text-sm text-muted-foreground">This will appear in the notification bell on the public website.</p></div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="text-sm font-medium">Title<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="New service available" className="admin-input mt-1" /></label>
             <label className="text-sm font-medium">Link (optional)<div className="relative mt-1"><LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={form.link} onChange={(event) => setForm({ ...form, link: event.target.value })} placeholder="/services" className="admin-input pl-9" /></div></label>
           </div>
           <label className="block text-sm font-medium">Message<textarea required value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Tell visitors what is new..." rows={3} className="admin-input mt-1 resize-y" /></label>
-          <div className="flex justify-end gap-2"><button type="button" onClick={() => setShowCreateForm(false)} className="admin-btn-secondary"><X className="mr-2 h-4 w-4" />Cancel</button><button type="submit" disabled={saving} className="admin-btn-primary">{saving ? "Publishing..." : "Publish notification"}</button></div>
+          <div className="flex justify-end gap-2"><button type="button" onClick={() => { setShowCreateForm(false); setEditingNotificationId(null); setForm({ title: "", message: "", link: "" }); }} className="admin-btn-secondary"><X className="mr-2 h-4 w-4" />Cancel</button><button type="submit" disabled={saving} className="admin-btn-primary">{saving ? "Saving..." : editingNotificationId ? "Save changes" : "Publish notification"}</button></div>
         </form>
       )}
 
@@ -216,7 +276,7 @@ export default function NotificationsPage() {
         <div className="admin-card overflow-hidden p-0">
           <div className="border-b border-border px-5 py-4"><h3 className="font-bold font-display">Website notifications</h3><p className="mt-1 text-xs text-muted-foreground">Published notices shown to website visitors.</p></div>
           {siteNotifications.map((notification) => (
-            <div key={notification.id} className="flex items-start gap-4 border-b border-border px-5 py-4 last:border-b-0"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"><Bell className="h-5 w-5 text-primary" /></div><div className="min-w-0 flex-1"><h4 className="font-semibold">{notification.title}</h4><p className="mt-1 text-sm text-muted-foreground">{notification.message}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(notification.createdAt)}</p></div><button type="button" aria-label={`Delete ${notification.title}`} onClick={() => void deleteSiteNotification(notification.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="h-4 w-4" /></button></div>
+            <div key={notification.id} className="flex items-start gap-4 border-b border-border px-5 py-4 last:border-b-0"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"><Bell className="h-5 w-5 text-primary" /></div><div className="min-w-0 flex-1"><h4 className="font-semibold">{notification.title}</h4><p className="mt-1 text-sm text-muted-foreground">{notification.message}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(notification.createdAt)}</p></div><div className="flex shrink-0 items-center gap-1"><button type="button" aria-label={`Edit ${notification.title}`} onClick={() => editSiteNotification(notification)} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-primary"><Pencil className="h-4 w-4" /></button><button type="button" aria-label={`Delete ${notification.title}`} onClick={() => void deleteSiteNotification(notification.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button></div></div>
           ))}
         </div>
       )}
@@ -327,14 +387,8 @@ export default function NotificationsPage() {
                   "lead";
 
                 return (
-                  <button
+                  <div
                     key={notification.id}
-                    type="button"
-                    onClick={() =>
-                      handleNotificationClick(
-                        notification,
-                      )
-                    }
                     className={`flex w-full items-center gap-4 border-b border-border px-5 py-5 text-left transition last:border-b-0 hover:bg-secondary/60 ${
                       !isRead
                         ? "bg-primary/[0.03]"
@@ -357,7 +411,12 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => handleNotificationClick(notification)}
+                      className="flex min-w-0 flex-1 items-center gap-4 text-left"
+                    >
+                      <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h4
                           className={`text-sm ${
@@ -383,11 +442,20 @@ export default function NotificationsPage() {
                           notification.date,
                         )}
                       </p>
-                    </div>
+                      </div>
 
-                    {/* Arrow */}
-                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  </button>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label={`Delete ${notification.title}`}
+                      onClick={() => handleNotificationDelete(notification)}
+                      className="shrink-0 rounded-lg p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 );
               },
             )}

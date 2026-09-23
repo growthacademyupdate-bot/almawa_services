@@ -30,22 +30,11 @@ const NAV: NavItem[] = [
 export function Navbar() {
   const { openConsultation, settings } = useApp();
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const [notifications, setNotifications] = useState<SiteNotification[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
-
-  const isHome = pathname === "/";
-  const solid = !isHome || scrolled;
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -69,34 +58,16 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        solid
-          ? "bg-background/95 backdrop-blur-lg shadow-soft border-b border-border"
-          : "bg-transparent"
-      }`}
+      className="sticky inset-x-0 top-0 z-50 border-b border-border bg-background shadow-soft"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-18 items-center justify-between py-3">
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="grid h-10 w-10 place-items-center rounded-xl gradient-primary shadow-elegant">
-              <span className="text-primary-foreground font-black text-lg">A</span>
-            </div>
-            <div className="flex flex-col leading-none">
-              <span
-                className={`font-display font-extrabold text-lg tracking-tight ${
-                  solid ? "text-foreground" : "text-white"
-                }`}
-              >
-                {settings.companyName}
-              </span>
-              <span
-                className={`text-[10px] uppercase tracking-[0.18em] font-semibold ${
-                  solid ? "text-primary" : "text-primary-glow"
-                }`}
-              >
-                Business Consulting
-              </span>
-            </div>
+            <img
+              src="/almawa-logo.svg"
+              alt={settings.companyName}
+              className="h-14 w-auto max-w-[210px] object-contain"
+            />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
@@ -118,10 +89,8 @@ export function Navbar() {
                       href={item.to}
                       className={`inline-flex items-center gap-1 px-3.5 py-2 rounded-full text-sm font-medium transition ${
                         active
-                          ? "text-primary"
-                          : solid
-                            ? "text-foreground hover:text-primary"
-                            : "text-white/90 hover:text-white"
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground hover:bg-secondary hover:text-primary"
                       }`}
                     >
                       {item.label}
@@ -183,10 +152,8 @@ export function Navbar() {
                   href={item.to}
                   className={`px-3.5 py-2 rounded-full text-sm font-medium transition ${
                     active
-                      ? "text-primary"
-                      : solid
-                        ? "text-foreground hover:text-primary"
-                        : "text-white/90 hover:text-white"
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-secondary hover:text-primary"
                   }`}
                 >
                   {item.label}
@@ -202,7 +169,7 @@ export function Navbar() {
                 aria-label="Website notifications"
                 aria-expanded={notificationsOpen}
                 onClick={() => setNotificationsOpen((current) => !current)}
-                className={`relative grid h-10 w-10 place-items-center rounded-full transition ${solid ? "text-foreground hover:bg-secondary" : "text-white hover:bg-white/10"}`}
+                className="relative grid h-10 w-10 place-items-center rounded-full text-foreground transition hover:bg-secondary"
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && <span className="absolute right-1 top-1 min-w-4 rounded-full bg-[#ff5a1f] px-1 text-[10px] font-bold leading-4 text-white">{unreadCount > 9 ? "9+" : unreadCount}</span>}
@@ -224,9 +191,7 @@ export function Navbar() {
 
           <button
             onClick={() => setMobileOpen((v) => !v)}
-            className={`lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full ${
-              solid ? "text-foreground" : "text-white"
-            }`}
+            className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground"
             aria-label="Menu"
           >
             {mobileOpen ? <HiX className="h-6 w-6" /> : <HiMenu className="h-6 w-6" />}

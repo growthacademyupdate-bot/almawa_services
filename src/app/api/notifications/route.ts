@@ -57,3 +57,39 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Unable to delete notification." }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const body = (await request.json()) as { id?: string; title?: string; message?: string; link?: string };
+    const id = body.id?.trim();
+    const title = body.title?.trim();
+    const message = body.message?.trim();
+
+    if (!id || !title || !message) {
+      return NextResponse.json({ error: "ID, title, and message are required." }, { status: 400 });
+    }
+
+    const db = await getDatabase();
+    const result = await db.collection("notifications").findOneAndUpdate(
+      { id },
+      {
+        $set: {
+          title,
+          message,
+          link: body.link?.trim() || "",
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    );
+
+    if (!result) {
+      return NextResponse.json({ error: "Notification not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(serializeNotification(result as unknown as Record<string, unknown>));
+  } catch (error) {
+    console.error("Failed to update notification:", error);
+    return NextResponse.json({ error: "Unable to update notification." }, { status: 500 });
+  }
+}

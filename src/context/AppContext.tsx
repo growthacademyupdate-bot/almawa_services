@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 import {
   blogsSeed,
@@ -135,6 +136,7 @@ export interface Settings {
   companyName: string;
   tagline: string;
   phone: string;
+  phoneTwo: string;
   email: string;
   address: string;
 
@@ -282,6 +284,12 @@ interface Ctx extends State {
 
   consultationOpen: boolean;
 
+  openWelcomePopup: () => void;
+
+  closeWelcomePopup: () => void;
+
+  welcomePopupOpen: boolean;
+
   preselectedService:
     | string
     | undefined;
@@ -397,6 +405,9 @@ export function AppProvider({
 }: {
   children: ReactNode;
 }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+
   const [state, setState] =
     useState<State>(
       initialState,
@@ -410,6 +421,11 @@ export function AppProvider({
   const [
     consultationOpen,
     setConsultationOpen,
+  ] = useState(false);
+
+  const [
+    welcomePopupOpen,
+    setWelcomePopupOpen,
   ] = useState(false);
 
   const [
@@ -432,26 +448,34 @@ export function AppProvider({
     const loadBackendData = async () => {
       try {
         const [
-          leadsResponse,
-          consultationsResponse,
           servicesResponse,
           blogsResponse,
           testimonialsResponse,
+          settingsResponse,
         ] =
           await Promise.all([
-            fetch("/api/leads"),
-            fetch("/api/consultations"),
             fetch("/api/admin/services"),
             fetch("/api/admin/content/blogs"),
             fetch("/api/admin/content/testimonials"),
+            fetch("/api/settings", { cache: "no-store" }),
           ]);
 
-        const backendLeads = leadsResponse.ok
-          ? await leadsResponse.json()
-          : [];
-        const backendConsultations = consultationsResponse.ok
-          ? await consultationsResponse.json()
-          : [];
+        let backendLeads: any = [];
+        let backendConsultations: any = [];
+
+        if (isAdminRoute) {
+          const [leadsResponse, consultationsResponse] = await Promise.all([
+            fetch("/api/leads"),
+            fetch("/api/consultations"),
+          ]);
+
+          backendLeads = leadsResponse.ok
+            ? await leadsResponse.json()
+            : [];
+          backendConsultations = consultationsResponse.ok
+            ? await consultationsResponse.json()
+            : [];
+        }
         const servicesPayload = servicesResponse.ok
           ? await servicesResponse.json()
           : [];
@@ -466,6 +490,9 @@ export function AppProvider({
         const backendTestimonials = testimonialsResponse.ok
           ? await testimonialsResponse.json()
           : [];
+        const backendSettings = settingsResponse.ok
+          ? await settingsResponse.json()
+          : null;
 
         setState((current) => ({
           ...current,
@@ -494,6 +521,17 @@ export function AppProvider({
           blogs: mergeByKey(current.blogs, backendBlogs, "id"),
           testimonials:
             mergeByKey(current.testimonials, backendTestimonials, "id"),
+          settings:
+            backendSettings && typeof backendSettings === "object"
+              ? {
+                  ...current.settings,
+                  ...backendSettings,
+                  social: {
+                    ...current.settings.social,
+                    ...(backendSettings.social ?? {}),
+                  },
+                }
+              : current.settings,
         }));
       } catch (error) {
         console.error("Failed to load admin data from backend:", error);
@@ -518,6 +556,15 @@ export function AppProvider({
           (current) => ({
             ...current,
             ...parsed,
+
+            settings: {
+              ...current.settings,
+              ...(parsed.settings ?? {}),
+              social: {
+                ...current.settings.social,
+                ...(parsed.settings?.social ?? {}),
+              },
+            },
 
             leads:
               parsed.leads?.length
@@ -552,7 +599,7 @@ export function AppProvider({
     }
 
     setHydrated(true);
-  }, []);
+  }, [isAdminRoute]);
 
   /* =======================================================
      SAVE LOCAL STORAGE
@@ -611,6 +658,8 @@ export function AppProvider({
         ...state,
 
         consultationOpen,
+
+        welcomePopupOpen,
 
         preselectedService,
 
@@ -1056,6 +1105,14 @@ export function AppProvider({
           );
         },
 
+        openWelcomePopup: () => {
+          setWelcomePopupOpen(true);
+        },
+
+        closeWelcomePopup: () => {
+          setWelcomePopupOpen(false);
+        },
+
         /* ================================================
            ADMIN LOGIN POPUP
         ================================================ */
@@ -1076,6 +1133,7 @@ export function AppProvider({
       [
         state,
         consultationOpen,
+        welcomePopupOpen,
         preselectedService,
         adminLoginOpen,
         patch,

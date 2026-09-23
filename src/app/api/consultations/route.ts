@@ -96,8 +96,6 @@ export async function POST(
       keyof ConsultationInput
     > = [
       "firstName",
-      "lastName",
-      "email",
       "mobile",
       "country",
       "subject",
@@ -125,11 +123,7 @@ export async function POST(
       );
     }
 
-    if (
-      !/^\S+@\S+\.\S+$/.test(
-        data.email!,
-      )
-    ) {
+    if (data.email && !/^\S+@\S+\.\S+$/.test(data.email)) {
       return NextResponse.json(
         {
           error:
