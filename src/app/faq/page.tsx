@@ -207,9 +207,21 @@ export default function FAQPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col pt-24 bg-background">
+    <main className="flex min-h-screen flex-col bg-background">
       {/* Hero Section */}
-      <section className="relative bg-secondary/30 py-20 lg:py-24 border-b border-border">
+      <section className="relative overflow-hidden border-b border-border bg-secondary/30 pb-20 pt-44 lg:pb-24 lg:pt-48">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/faq.png')",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-white/65"
+        />
+
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="max-w-3xl mx-auto">
             <motion.span

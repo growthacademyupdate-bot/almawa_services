@@ -4,6 +4,7 @@ import {
   Building2,
   CheckCircle2,
   Filter,
+  ImagePlus,
   Pencil,
   Plus,
   Search,
@@ -24,12 +25,14 @@ type Industry = {
   description: string;
   focus: string[];
   icon?: string;
+  imageUrl?: string;
 };
 
 const emptyForm = {
   name: "",
   description: "",
   focus: [""],
+  imageUrl: "",
 };
 
 function notifyIndustryUpdate() {
@@ -190,6 +193,11 @@ export default function IndustriesManagementPage() {
                     "string"
                       ? item.icon
                       : undefined,
+                  imageUrl:
+                    typeof item.imageUrl ===
+                    "string"
+                      ? item.imageUrl
+                      : undefined,
                 })
               )
               .filter(
@@ -324,6 +332,7 @@ export default function IndustriesManagementPage() {
         name: "",
         description: "",
         focus: [""],
+        imageUrl: "",
       });
       setError("");
       setShowForm(true);
@@ -346,6 +355,8 @@ export default function IndustriesManagementPage() {
                 ...industry.focus,
               ]
             : [""],
+        imageUrl:
+          industry.imageUrl ?? "",
       });
 
       setError("");
@@ -364,6 +375,7 @@ export default function IndustriesManagementPage() {
         name: "",
         description: "",
         focus: [""],
+        imageUrl: "",
       });
       setError("");
     };
@@ -428,6 +440,41 @@ export default function IndustriesManagementPage() {
       );
     };
 
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setError("Please choose an image smaller than 3 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((current) => ({
+        ...current,
+        imageUrl:
+          typeof reader.result === "string"
+            ? reader.result
+            : current.imageUrl,
+      }));
+      setError("");
+    };
+    reader.readAsDataURL(file);
+  };
+
   const saveIndustry =
     async () => {
       const name =
@@ -473,6 +520,7 @@ export default function IndustriesManagementPage() {
           name,
           description,
           focus,
+          imageUrl: form.imageUrl || null,
         };
 
         const response =
@@ -761,6 +809,14 @@ export default function IndustriesManagementPage() {
                     </div>
                   </div>
 
+                  {industry.imageUrl && (
+                    <img
+                      src={industry.imageUrl}
+                      alt=""
+                      className="mt-5 h-36 w-full rounded-2xl object-cover"
+                    />
+                  )}
+
                   {/* DESCRIPTION */}
                   <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
                     {
@@ -955,6 +1011,61 @@ export default function IndustriesManagementPage() {
                       .length
                   }
                   /500
+                </p>
+              </div>
+
+              {/* INDUSTRY IMAGE */}
+              <div>
+                <label
+                  htmlFor="industry-image"
+                  className="admin-label"
+                >
+                  Industry Image
+                </label>
+
+                <div className="mt-1.5 flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <label
+                    htmlFor="industry-image"
+                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:bg-primary/5"
+                  >
+                    <ImagePlus className="h-4 w-4" />
+                    Choose Image
+                  </label>
+
+                  <input
+                    id="industry-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="sr-only"
+                  />
+
+                  {form.imageUrl && (
+                    <div className="relative h-24 w-36 overflow-hidden rounded-xl border border-border">
+                      <img
+                        src={form.imageUrl}
+                        alt="Industry preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((current) => ({
+                            ...current,
+                            imageUrl: "",
+                          }))
+                        }
+                        className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
+                        aria-label="Remove industry image"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <p className="mt-2 text-xs text-muted-foreground">
+                  JPG, PNG, or WebP. Maximum file size: 3 MB.
                 </p>
               </div>
 
