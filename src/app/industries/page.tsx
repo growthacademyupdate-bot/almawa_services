@@ -27,6 +27,7 @@ type Industry = {
   description: string;
   focus: string[];
   icon?: string;
+  imageUrl?: string;
 };
 
 const fallbackIndustries: Industry[] = [
@@ -253,6 +254,11 @@ function normalizeIndustry(
       "string"
         ? value.icon
         : undefined,
+    imageUrl:
+      typeof value.imageUrl ===
+      "string"
+        ? value.imageUrl
+        : undefined,
   };
 }
 
@@ -408,10 +414,21 @@ export default function IndustriesPage() {
   ]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-background pt-24">
+    <main className="flex min-h-screen flex-col bg-background">
       {/* HERO */}
-      <section className="relative overflow-hidden bg-secondary/30 py-20 lg:py-28">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <section className="relative overflow-hidden bg-secondary/30 pb-20 pt-44 lg:pb-28 lg:pt-52">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('/industries.png')",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-white/55"
+        />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -591,9 +608,17 @@ export default function IndustriesPage() {
                     >
                       <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-[100px] bg-primary/5 transition-transform group-hover:scale-110" />
 
-                      <div className="relative z-10 mb-6 flex h-14 w-14 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-md">
-                        <IndustryIcon className="h-7 w-7" />
-                      </div>
+                      {industry.imageUrl ? (
+                        <img
+                          src={industry.imageUrl}
+                          alt=""
+                          className="relative z-10 mb-6 h-40 w-full rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="relative z-10 mb-6 flex h-14 w-14 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-md">
+                          <IndustryIcon className="h-7 w-7" />
+                        </div>
+                      )}
 
                       <h3 className="relative z-10 mb-3 text-2xl font-bold text-foreground">
                         {industry.name}

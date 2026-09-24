@@ -386,18 +386,37 @@ export async function PATCH(
       ...changes
     } = data;
 
+    const shouldRemoveImage =
+      collection === "industries" &&
+      (changes.imageUrl === null ||
+        changes.imageUrl === "");
+
+    if (shouldRemoveImage) {
+      delete changes.imageUrl;
+    }
+
+    const update: {
+      $set: Record<string, unknown>;
+      $unset?: Record<string, "">;
+    } = {
+      $set: {
+        ...changes,
+        updatedAt: new Date(),
+      },
+    };
+
+    if (shouldRemoveImage) {
+      update.$unset = {
+        imageUrl: "",
+      };
+    }
+
     const result =
       await db
         .collection(collectionName)
         .findOneAndUpdate(
           filter,
-          {
-            $set: {
-              ...changes,
-              updatedAt:
-                new Date(),
-            },
-          },
+          update,
           {
             returnDocument:
               "after",
