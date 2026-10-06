@@ -12,6 +12,8 @@ export function WelcomePopup() {
     email: "",
     phone: "",
     company: "",
+    hasWebsite: "No",
+    location: "",
     service: preselectedService ?? "",
     stage: "Website enquiry",
     message: "",
@@ -64,6 +66,8 @@ export function WelcomePopup() {
           stage: form.stage,
           message: form.message,
           company: form.company,
+          hasWebsite: form.hasWebsite,
+          location: form.location,
         },
       });
       addLead(form);
@@ -169,6 +173,25 @@ export function WelcomePopup() {
                         className="input"
                         placeholder="Company Name"
                         maxLength={100}
+                      />
+                    </Field>
+                    <Field label="Do you have a website?">
+                      <select
+                        value={form.hasWebsite}
+                        onChange={(e) => update("hasWebsite")(e.target.value)}
+                        className="input"
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </Field>
+                    <Field label="Location" hideLabel>
+                      <input
+                        value={form.location}
+                        onChange={(e) => update("location")(e.target.value)}
+                        className="input"
+                        placeholder="Location"
+                        maxLength={120}
                       />
                     </Field>
                     <Field label="Message" error={errors.message} hideLabel>

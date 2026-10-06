@@ -182,6 +182,17 @@ export async function POST(
 
         message:
           data.message!.trim(),
+
+        company:
+          data.company?.trim() ?? "",
+
+        hasWebsite:
+          data.hasWebsite === "Yes"
+            ? "Yes"
+            : "No",
+
+        location:
+          data.location?.trim() ?? "",
       };
 
     const db =
