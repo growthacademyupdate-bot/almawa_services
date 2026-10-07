@@ -10,6 +10,8 @@ export type ConsultationInput = {
   stage: string;
   message: string;
   company?: string;
+  hasWebsite?: string;
+  location?: string;
 };
 
 export async function createConsultation({

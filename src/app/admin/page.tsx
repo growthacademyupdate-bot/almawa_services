@@ -36,6 +36,8 @@ type LeadForm = {
   email: string;
   phone: string;
   service: string;
+  hasWebsite: string;
+  location: string;
   stage: string;
   message: string;
 };
@@ -75,6 +77,8 @@ const EMPTY_LEAD: LeadForm = {
   email: "",
   phone: "",
   service: "",
+  hasWebsite: "No",
+  location: "",
   stage: "Idea Stage",
   message: "",
 };
@@ -146,6 +150,16 @@ function normalizeLead(
     service:
       typeof raw.service === "string"
         ? raw.service
+        : "",
+
+    hasWebsite:
+      raw.hasWebsite === "Yes"
+        ? "Yes"
+        : "No",
+
+    location:
+      typeof raw.location === "string"
+        ? raw.location
         : "",
 
     stage:
@@ -1392,6 +1406,12 @@ export default function AdminDashboardPage() {
         service:
           leadForm.service.trim(),
 
+        hasWebsite:
+          leadForm.hasWebsite,
+
+        location:
+          leadForm.location.trim(),
+
         stage:
           leadForm.stage,
 
@@ -1893,6 +1913,44 @@ export default function AdminDashboardPage() {
                     )
                   }
                   placeholder="Business Consulting"
+                />
+              </div>
+
+              <div>
+                <label className="admin-label">
+                  Do you have a website?
+                </label>
+
+                <select
+                  className="admin-input"
+                  value={leadForm.hasWebsite}
+                  onChange={(event) =>
+                    updateLeadForm(
+                      "hasWebsite",
+                      event.target.value,
+                    )
+                  }
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="admin-label">
+                  Location
+                </label>
+
+                <input
+                  className="admin-input"
+                  value={leadForm.location}
+                  onChange={(event) =>
+                    updateLeadForm(
+                      "location",
+                      event.target.value,
+                    )
+                  }
+                  placeholder="City, State"
                 />
               </div>
 

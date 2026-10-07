@@ -52,6 +52,8 @@ export interface Lead {
   country?: string;
   subject?: string;
   service: string;
+  hasWebsite?: string;
+  location?: string;
   stage: string;
   message: string;
   date: string;
